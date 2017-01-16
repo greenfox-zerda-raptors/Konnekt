@@ -1,6 +1,5 @@
 .idea
 /out/
 *.iml
-.build
-/gradle/*
-!/gradle/wrapper/gradle-wrapper.properties
+/build
+.gradle
