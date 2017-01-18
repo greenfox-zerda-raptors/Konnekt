@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @SpringBootApplication
 public class KonnektApplication {
-    
+
     public static void main(String[] args) {
         SpringApplication.run(KonnektApplication.class, args);
     }
