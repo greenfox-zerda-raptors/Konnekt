@@ -40,6 +40,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .dataSource(securityDataSource)
                 .usersByUsernameQuery("select user_name, user_password, enabled from konnekt.user where user_name=?")
                 .authoritiesByUsernameQuery("select user_name, user_role from konnekt.user where user_name=?");
-
     }
 }
