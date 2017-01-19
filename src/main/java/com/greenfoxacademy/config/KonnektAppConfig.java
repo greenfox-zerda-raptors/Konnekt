@@ -28,17 +28,9 @@ public class KonnektAppConfig {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
         flyway.setSchemas("konnekt");
-        flyway.setLocations("filesystem:/src/main/java/com/greenfoxacademy/db/migration");
+        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
         flyway.setDataSource(dataSource());
         return flyway;
     }
-//
-//    @Bean
-//    public CookieSerializer cookieSerializer() {
-//        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-//        serializer.setCookieName("JSESSIONID");
-//        serializer.setCookiePath("/");
-//        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.[a-z]+)$");
-//        return serializer;
-//    }
+
 }
