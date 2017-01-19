@@ -1,15 +1,26 @@
 package com.greenfoxacademy.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import javax.sql.DataSource;
+
 @Configuration
 @EnableWebSecurity
+@ComponentScan
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private DataSource securityDataSource;
+
+    @Autowired
+    public WebSecurityConfig(DataSource securityDataSource) {
+        this.securityDataSource = securityDataSource;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -25,8 +36,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .inMemoryAuthentication()
-                .withUser("admin").password("admin").roles("ADMIN");
+        auth.jdbcAuthentication()
+                .dataSource(securityDataSource)
+                .usersByUsernameQuery("select user_name, user_password, enabled from konnekt.user where user_name=?")
+                .authoritiesByUsernameQuery("select user_name, user_role from konnekt.user where user_name=?");
+
     }
 }
