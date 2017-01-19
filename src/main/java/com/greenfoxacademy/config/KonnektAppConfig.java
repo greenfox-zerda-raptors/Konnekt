@@ -13,11 +13,13 @@ public class KonnektAppConfig {
     public DataSource dataSource() {
         DriverManagerDataSource driverManagerDataSource =
                 new DriverManagerDataSource();
-        driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        driverManagerDataSource.setUrl("jdbc:mysql://localhost:3306/");
+        driverManagerDataSource.setDriverClassName("org.postgresql.jdbc3.Jdbc3ConnectionPool");
+        driverManagerDataSource.setUrl("jdbc:postgresql://localhost:5432/");
         // Configure user name and password for database connection
-        driverManagerDataSource.setUsername("root");
+        driverManagerDataSource.setUsername("postgres");
         driverManagerDataSource.setPassword("admin1234");
+        //
+
         return driverManagerDataSource;
     }
 }

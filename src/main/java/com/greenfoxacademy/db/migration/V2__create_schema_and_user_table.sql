@@ -1,5 +1,5 @@
 CREATE TABLE konnekt.user(
-  user_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+  user_id SERIAL PRIMARY KEY NOT NULL,
   user_name VARCHAR(255) NOT NULL,
   user_password VARCHAR(255) NOT NULL,
   user_role VARCHAR(255) NOT NULL
