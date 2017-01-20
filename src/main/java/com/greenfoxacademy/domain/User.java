@@ -2,7 +2,6 @@ package com.greenfoxacademy.domain;
 
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -22,12 +21,14 @@ public class User {
     private String userRole;
     private boolean enabled;
 
-    public User(){}
-
-    public User(String userName, String userPassword){
-        this.userName = userName;
-        this.userPassword = userPassword;
+    public User(){
         this.userRole= "USER";
         this.enabled = true;
+    }
+
+    public User(String userName, String userPassword){
+        this();
+        this.userName = userName;
+        this.userPassword = userPassword;
     }
 }

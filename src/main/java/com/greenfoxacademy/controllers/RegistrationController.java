@@ -1,18 +1,17 @@
 package com.greenfoxacademy.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
 /**
- * Created by Lenovo on 1/20/2017.
+ * Created by JadeTeam on 1/20/2017.
  */
 @Controller
 public class RegistrationController {
@@ -23,21 +22,25 @@ public class RegistrationController {
         this.userService = userService;
     }
 
-//    @PostMapping("/register")
-//    public String register(@RequestParam("userName") String userName,
-//                           @RequestParam("userPassword")  String userPassword) throws IOException {
-//        User newUser = new User(userName,userPassword);
-//        userService.save(newUser);
-//        return "redirect:/";
-//    }
+    @GetMapping("/register")
+    @ResponseBody
+    public String registerGet() {
+        return "this is the registration page";
+    }
 
     @PostMapping("/register")
-    public String register(@RequestBody String profileJson) throws IOException {
-
-        User newUser = new ObjectMapper().readValue(profileJson, User.class);
-        newUser.setUserRole("USER");
-        newUser.setEnabled(true);
-        userService.save(newUser);
-        return "redirect:/";
+    public String registerPost(@RequestBody String profileJson) throws IOException {
+        User newUser = new User();
+        JsonNode registrationJson = new ObjectMapper().readValue(profileJson, JsonNode.class);
+        newUser.setUserName(registrationJson.get("userName").textValue());
+        newUser.setUserPassword(registrationJson.get("userPassword").textValue());
+        String passwordConfirmation = registrationJson.get("passwordConfirmation").textValue();
+        if (!userService.userExists(newUser.getUserName())
+                && passwordConfirmation.equals(newUser.getUserPassword())) {
+            userService.save(newUser);
+            return "redirect:/login";
+        } else {
+            return "redirect:/register";
+        }
     }
 }

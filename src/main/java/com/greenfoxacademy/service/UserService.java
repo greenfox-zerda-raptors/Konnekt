@@ -23,4 +23,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public boolean userExists(String userName) {
+        return userRepository.findByUserName(userName) != null;
+    }
 }
