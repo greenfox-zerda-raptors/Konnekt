@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by JadeTeam on 1/16/2017. ControllerTest v0
@@ -16,9 +16,10 @@ import static org.junit.Assert.*;
 public class HomeControllerTest {
 
     private HomeController homeController;
+    
 
     @Before
-    public void setup(){
+    public void setup() {
         homeController = new HomeController();
     }
 
@@ -26,5 +27,6 @@ public class HomeControllerTest {
     public void homeTest() {
         assertEquals("hello", homeController.home());
     }
+
 
 }
