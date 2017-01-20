@@ -23,13 +23,33 @@ jar {
 
 sourceCompatibility = 1.8
 
-processResources {
-    def profile = (project.hasProperty('profile') ? project.profile : 'dev').toLowerCase()
-    include "**/application_${profile}.properties"
-    rename {
-        'application.properties'
-    }
-}
+//def prodProfiles = 'prod'
+//def devMySQLProfiles = 'devmysql'
+//def devPostgreSQLProfiles = "devpostgresql"
+//def testProfiles = 'test'
+//def propertyDrivenProfiles;
+//
+//if (project.hasProperty('prod')) {
+//    // Used for production environment
+//    propertyDrivenProfiles = prodProfiles
+//    apply from: rootProject.file('gradle/profile_prod.gradle');
+//
+//} else if (project.hasProperty('devmysql')) {
+//    // Used for local development with
+//    propertyDrivenProfiles = devMySQLProfiles
+//    apply from: rootProject.file('gradle/profile_devmysql.gradle');
+//
+//} else if (project.hasProperty('devmysql')) {
+//    // Used for local development
+//    propertyDrivenProfiles = devMySQLProfiles
+//    apply from: rootProject.file('gradle/profile_devmysql.gradle');
+//
+//} else {
+//    // Default when no profile property is specified, used for testing
+//    propertyDrivenProfiles = testProfiles
+//    apply from: rootProject.file('gradle/profile_test.gradle');
+//}
+//println 'Using profile: "' + propertyDrivenProfiles + '" for ' + project.getName()
 
 
 repositories {
@@ -40,13 +60,13 @@ repositories {
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile("org.springframework.boot:spring-boot-starter-security")
-    compile('org.springframework.boot:spring-boot-starter-jdbc')
+//    compile('org.springframework.boot:spring-boot-starter-jdbc')
 
     runtime('org.springframework.boot:spring-boot-devtools')
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
-    runtime('mysql:mysql-connector-java')
+//    runtime('mysql:mysql-connector-java')
     compile("org.flywaydb:flyway-core:4.0.3")
-//    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
+    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
     compile('org.springframework.boot:spring-boot-starter-data-jpa')
 }
