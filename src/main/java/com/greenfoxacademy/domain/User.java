@@ -2,12 +2,10 @@ package com.greenfoxacademy.domain;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
  * Created by JadeTeam on 1/18/2017. User entity for db
@@ -22,4 +20,14 @@ public class User {
     private String userName;
     private String userPassword;
     private String userRole;
+    private boolean enabled;
+
+    public User(){}
+
+    public User(String userName, String userPassword){
+        this.userName = userName;
+        this.userPassword = userPassword;
+        this.userRole= "USER";
+        this.enabled = true;
+    }
 }

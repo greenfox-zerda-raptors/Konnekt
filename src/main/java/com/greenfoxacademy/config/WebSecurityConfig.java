@@ -25,23 +25,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/**").authenticated()
-                .and()
-                .formLogin()
-                .and()
-                .logout()
-                .and().csrf().disable();
-        http.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+        http.csrf().disable();
+//        http
+//                .authorizeRequests()
+//                .antMatchers("/**").authenticated()
+//                .and()
+//                .formLogin()
+//                .and()
+//                .logout()
+//                .and().csrf().disable();
+//        http.sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.jdbcAuthentication()
-                .dataSource(securityDataSource)
-                .usersByUsernameQuery("select user_name, user_password, enabled from konnekt.user where user_name=?")
-                .authoritiesByUsernameQuery("select user_name, user_role from konnekt.user where user_name=?");
+//        auth.jdbcAuthentication()
+//                .dataSource(securityDataSource)
+//                .usersByUsernameQuery("select user_name, user_password, enabled from konnekt.user where user_name=?")
+//                .authoritiesByUsernameQuery("select user_name, user_role from konnekt.user where user_name=?");
     }
 }
