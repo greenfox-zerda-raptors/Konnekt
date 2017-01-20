@@ -14,10 +14,10 @@ public class KonnektAppConfig {
     public DataSource dataSource() {
         DriverManagerDataSource driverManagerDataSource =
                 new DriverManagerDataSource();
-        driverManagerDataSource.setDriverClassName("org.postgresql.jdbc3.Jdbc3ConnectionPool");
-        driverManagerDataSource.setUrl("jdbc:postgresql://localhost:5432/");
+        driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        driverManagerDataSource.setUrl("jdbc:mysql://localhost:3306/konnekt");
         // Configure user name
-        driverManagerDataSource.setUsername("postgres");
+        driverManagerDataSource.setUsername("root");
         // Obtain password from environmental variable
         driverManagerDataSource.setPassword(System.getenv("DB_PASSWORD"));
         return driverManagerDataSource;
@@ -28,17 +28,8 @@ public class KonnektAppConfig {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
         flyway.setSchemas("konnekt");
-        flyway.setLocations("filesystem:/src/main/java/com/greenfoxacademy/db/migration");
+        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
         flyway.setDataSource(dataSource());
         return flyway;
     }
-//
-//    @Bean
-//    public CookieSerializer cookieSerializer() {
-//        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
-//        serializer.setCookieName("JSESSIONID");
-//        serializer.setCookiePath("/");
-//        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.[a-z]+)$");
-//        return serializer;
-//    }
 }

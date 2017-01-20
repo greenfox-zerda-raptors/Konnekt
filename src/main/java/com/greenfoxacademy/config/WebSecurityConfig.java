@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 
 import javax.sql.DataSource;
 
@@ -27,14 +26,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
+                .antMatchers("/register").permitAll()
                 .antMatchers("/**").authenticated()
                 .and()
                 .formLogin()
                 .and()
                 .logout()
                 .and().csrf().disable();
-        http.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
     }
 
     @Autowired
