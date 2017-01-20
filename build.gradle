@@ -10,8 +10,10 @@ buildscript {
     }
 }
 
+
+
+
 apply plugin: 'java'
-apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 
 jar {
@@ -20,6 +22,15 @@ jar {
 }
 
 sourceCompatibility = 1.8
+
+processResources {
+    def profile = (project.hasProperty('profile') ? project.profile : 'dev').toLowerCase()
+    include "**/application_${profile}.properties"
+    rename {
+        'application.properties'
+    }
+}
+
 
 repositories {
     mavenCentral()
