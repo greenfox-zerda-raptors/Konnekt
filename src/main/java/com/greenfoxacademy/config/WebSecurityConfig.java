@@ -42,8 +42,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .rememberMe().tokenRepository(persistentTokenRepository())
                 .tokenValiditySeconds(1209600);
 
-//        http.sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
     }
 
     @Autowired

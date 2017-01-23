@@ -23,30 +23,29 @@ jar {
 
 sourceCompatibility = 1.8
 
-processResources {
-    def profile = (project.hasProperty('profile') ? project.profile : 'dev').toLowerCase()
-    include "**/application_${profile}.properties"
-    rename {
-        'application.properties'
-    }
-}
-
 
 repositories {
     mavenCentral()
 }
 
-
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile("org.springframework.boot:spring-boot-starter-security")
-    compile('org.springframework.boot:spring-boot-starter-jdbc')
-
     runtime('org.springframework.boot:spring-boot-devtools')
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
-    runtime('mysql:mysql-connector-java')
     compile("org.flywaydb:flyway-core:4.0.3")
-//    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
     compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+    compile group: 'org.springframework.security', name: 'spring-security-test', version: '4.1.3.RELEASE'
+
+
+    bootRun {
+        // Ensures IntelliJ can load resource files
+        addResources = false
+    }
+
+
 }
+
+apply from: rootProject.file('gradle/profiles.gradle');

@@ -1,0 +1,32 @@
+def prodProfiles = 'prod'
+def devMySQLProfiles = 'devmysql'
+def testProfiles = 'test'
+def devProfiles = 'dev'
+def propertyDrivenProfiles;
+
+if (project.hasProperty('prod')) {
+    // Used for production environment
+    propertyDrivenProfiles = prodProfiles
+    apply from: rootProject.file('gradle/profile_prod.gradle');
+
+} else if (project.hasProperty('devmysql')) {
+    // Used for local development with
+    propertyDrivenProfiles = devMySQLProfiles
+    apply from: rootProject.file('gradle/profile_devmysql.gradle');
+
+} else if (project.hasProperty('dev')) {
+    // Used for local development
+    propertyDrivenProfiles = devProfiles
+    apply from: rootProject.file('gradle/profile_dev.gradle');
+} else {
+    // Default when no profile property is specified, used for testing
+    propertyDrivenProfiles = testProfiles
+    apply from: rootProject.file('gradle/profile_test.gradle');
+}
+println 'Using profile: "' + propertyDrivenProfiles + '" for ' + project.getName()
+
+bootRun {
+    systemProperties = [
+            'spring.profiles.active': propertyDrivenProfiles
+    ]
+}
