@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 public class HomeControllerTest {
 
     private HomeController homeController;
+    
 
     @Before
     public void setup() {
@@ -26,5 +27,6 @@ public class HomeControllerTest {
     public void homeTest() {
         assertEquals("hello", homeController.home());
     }
+
 
 }
