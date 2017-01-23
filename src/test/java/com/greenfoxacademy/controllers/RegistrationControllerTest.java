@@ -1,12 +1,14 @@
 package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.config.KonnektAppConfig;
+import com.greenfoxacademy.config.Profiles;
 import com.greenfoxacademy.config.SecurityWebAppInitializer;
 import com.greenfoxacademy.config.WebSecurityConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -24,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SecurityWebAppInitializer.class, WebSecurityConfig.class, KonnektAppConfig.class})
 @WebAppConfiguration
-//@ActiveProfiles("production")
+@ActiveProfiles(Profiles.DEV)
 public class RegistrationControllerTest {
 
     @Autowired

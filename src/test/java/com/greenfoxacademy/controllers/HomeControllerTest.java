@@ -1,9 +1,11 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.config.Profiles;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
@@ -13,10 +15,11 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@ActiveProfiles(Profiles.DEV)
 public class HomeControllerTest {
 
     private HomeController homeController;
-    
+
 
     @Before
     public void setup() {
