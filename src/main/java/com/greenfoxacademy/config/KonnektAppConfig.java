@@ -8,9 +8,10 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import javax.sql.DataSource;
 
 @Configuration
+//@Profile("production")
 public class KonnektAppConfig {
 
-    @Bean(name = "securityDataSource")
+    @Bean
     public DataSource dataSource() {
         DriverManagerDataSource driverManagerDataSource =
                 new DriverManagerDataSource();
@@ -24,12 +25,12 @@ public class KonnektAppConfig {
     }
 
     @Bean(initMethod = "migrate")
-    Flyway flyway() {
+    Flyway flyway(DataSource dataSource) {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
         flyway.setSchemas("konnekt");
         flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
-        flyway.setDataSource(dataSource());
+        flyway.setDataSource(dataSource);
         return flyway;
     }
 }

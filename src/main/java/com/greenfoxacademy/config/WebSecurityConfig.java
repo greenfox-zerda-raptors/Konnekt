@@ -42,4 +42,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .usersByUsernameQuery("select user_name, user_password, enabled from konnekt.user where user_name=?")
                 .authoritiesByUsernameQuery("select user_name, user_role from konnekt.user where user_name=?");
     }
+
+//    @Bean
+//    public FilterChainProxy springSecurityFilterChain()
+//            throws ServletException, Exception {
+//        List<SecurityFilterChain> securityFilterChains = new ArrayList<SecurityFilterChain>();
+//        securityFilterChains.add(new DefaultSecurityFilterChain(
+//                new AntPathRequestMatcher("/login**")));
+//        securityFilterChains.add(new DefaultSecurityFilterChain(
+//                new AntPathRequestMatcher("/resources/**")));
+//        securityFilterChains.add(new DefaultSecurityFilterChain(
+//                new AntPathRequestMatcher("/**"),
+//                securityContextPersistenceFilter(),
+//                logoutFilter(),
+//                usernamePasswordAuthenticationFilter(),
+//                exceptionTranslationFilter(),
+    //filterSecurityInterceptor()
+    //  ));
+//        return new FilterChainProxy(securityFilterChains);
+    // }
+
+
 }
