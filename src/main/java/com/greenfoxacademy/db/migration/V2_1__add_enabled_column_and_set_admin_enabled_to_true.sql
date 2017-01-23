@@ -3,4 +3,4 @@ ALTER TABLE konnekt.user
 
 UPDATE konnekt.user
 SET enabled = TRUE
-WHERE user_id = 1;
+WHERE id = 1;
