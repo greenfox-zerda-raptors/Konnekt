@@ -28,7 +28,7 @@ public class KonnektAppConfig {
         return mySQLDataSource();
     }
 
-    public DataSource mySQLDataSource() {
+    private DataSource mySQLDataSource() {
         DriverManagerDataSource driverManagerDataSource =
                 new DriverManagerDataSource();
         driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
@@ -36,7 +36,7 @@ public class KonnektAppConfig {
         // Configure user name
         driverManagerDataSource.setUsername("root");
         // Obtain password from environmental variable
-        driverManagerDataSource.setPassword("admin1234"/*System.getenv("DB_PASSWORD")*/);
+        driverManagerDataSource.setPassword(System.getenv("DB_PASSWORD"));
         return driverManagerDataSource;
     }
 
@@ -47,17 +47,14 @@ public class KonnektAppConfig {
     }
 
 
-    public DriverManagerDataSource devPostgresDataSource() throws URISyntaxException {
+    private DriverManagerDataSource devPostgresDataSource() throws URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
         String username = dbUri.getUserInfo().split(":")[0];
-//        String password = dbUri.getUserInfo().split(":")[1];
-        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath()/* + "?sslmode=require"*/;
-
+        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
         dataSource.setUrl(dbUrl);
         dataSource.setUsername(username);
-//        dataSource.setPassword(password);
 
 
         return dataSource;
@@ -69,12 +66,11 @@ public class KonnektAppConfig {
         return prodPostgresDataSource();
     }
 
-    public DriverManagerDataSource prodPostgresDataSource() throws URISyntaxException {
+    private DriverManagerDataSource prodPostgresDataSource() throws URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
         String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath() + "?sslmode=require";
-
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
         dataSource.setUrl(dbUrl);
@@ -93,8 +89,6 @@ public class KonnektAppConfig {
         flyway.setSchemas("konnekt");
         flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
         flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
-
-        flyway.repair();
         return flyway;
     }
 }

@@ -21,11 +21,19 @@ public class CommonPropertiesConfiguration extends PropertiesConfiguration {
         return createPropertySourcesPlaceholderConfigurer(
                 "application_dev.properties");
     }
+
     @Bean
-    @Profile(Profiles.DEV)
+    @Profile(Profiles.PROD)
     public static PropertySourcesPlaceholderConfigurer prodProperties() {
         return createPropertySourcesPlaceholderConfigurer(
                 "application_prod.properties");
+    }
+
+    @Bean
+    @Profile(Profiles.TEST)
+    public static PropertySourcesPlaceholderConfigurer testProperties() {
+        return createPropertySourcesPlaceholderConfigurer(
+                "application_test.properties");
     }
 
     @Bean
