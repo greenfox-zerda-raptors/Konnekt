@@ -17,9 +17,15 @@ public class CommonPropertiesConfiguration extends PropertiesConfiguration {
 
     @Bean
     @Profile(Profiles.DEV)
-    public static PropertySourcesPlaceholderConfigurer postgresProperties() {
+    public static PropertySourcesPlaceholderConfigurer devProperties() {
         return createPropertySourcesPlaceholderConfigurer(
                 "application_dev.properties");
+    }
+    @Bean
+    @Profile(Profiles.DEV)
+    public static PropertySourcesPlaceholderConfigurer prodProperties() {
+        return createPropertySourcesPlaceholderConfigurer(
+                "application_prod.properties");
     }
 
     @Bean
