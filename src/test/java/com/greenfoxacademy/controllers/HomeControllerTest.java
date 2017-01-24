@@ -28,7 +28,7 @@ public class HomeControllerTest {
 
     @Test
     public void homeTest() {
-        assertEquals("hello", homeController.home());
+        assertEquals("OK", homeController.home());
     }
 
 
