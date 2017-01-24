@@ -2,10 +2,10 @@ package com.greenfoxacademy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.greenfoxacademy.domain.User;
+import com.greenfoxacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.greenfoxacademy.repository.*;
 
 /**
  * Created by JadeTeam on 1/19/2017. Communicates with UserRepository
@@ -23,19 +23,24 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void save(User user){
+    public void save(User user) {
         user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
         userRepository.save(user);
     }
 
     public boolean userExists(String userName) {
-        return userRepository.findByUserName(userName) != null;
+        return findUserByName(userName) != null;
     }
 
-    public User createUser(JsonNode registrationJson){
+    public User findUserByName(String userName) {
+        return userRepository.findByUserName(userName);
+    }
+
+    public User createUser(JsonNode registrationJson) {
         User newUser = new User();
         newUser.setUserName(registrationJson.get("username").textValue());
         newUser.setUserPassword(registrationJson.get("password").textValue());
         return newUser;
     }
+
 }

@@ -1,0 +1,49 @@
+package com.greenfoxacademy.controllers;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.greenfoxacademy.domain.Contact;
+import com.greenfoxacademy.service.ContactService;
+import com.greenfoxacademy.service.HttpServletService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Created by Jade Team on 2017.01.24..
+ */
+
+@RestController
+public class ContactController {
+
+    private ContactService contactService;
+    private HttpServletService servletService;
+
+    @Autowired
+    public ContactController(ContactService contactService, HttpServletService servletService) {
+        this.contactService = contactService;
+        this.servletService = servletService;
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity addNewContact(@RequestBody String newContactData) throws Exception {
+        JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
+        Contact newContact = contactService.createNewContact(newContactJson);
+        if (contactService.newContactIsValid(newContact)) {
+            contactService.saveNewContact(newContact);
+            return servletService.createResponseEntity("contact created", "success", HttpStatus.CREATED);
+        } else {
+            return servletService.createResponseEntity("cannot create contact", "error", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/mycontacts")
+    public void listMyContact(){
+        
+
+    }
+}
