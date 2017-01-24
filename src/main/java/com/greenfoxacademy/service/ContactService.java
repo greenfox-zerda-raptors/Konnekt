@@ -32,7 +32,7 @@ public class ContactService {
                 getName();
     }
 
-    private User obtainUserIdByName(String userName) {
+    private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
     }
 
@@ -40,7 +40,7 @@ public class ContactService {
         Contact contact = new Contact();
         contact.setContactName(newContactJson.get("contactName").textValue());
         contact.setContactDescription(newContactJson.get("contactDescription").textValue());
-        contact.setUser(obtainUserIdByName(obtainUserNameFromSecurity()));
+        contact.setUser(obtainUserByName(obtainUserNameFromSecurity()));
         return contact;
     }
 
@@ -64,4 +64,11 @@ public class ContactService {
         return contactRepository.findOne(id).getUser().getUserName().equals(obtainUserNameFromSecurity());
     }
 
+    public List<Contact> obtainMyContacts() {
+        return contactRepository.findByUserId(obtainCurrentUserId());
+    }
+
+    private Long obtainCurrentUserId() {
+        return obtainUserByName(obtainUserNameFromSecurity()).getId();
+    }
 }

@@ -45,11 +45,12 @@ public class ContactController {
 
     @GetMapping("/allcontacts")
     public String listAllContact() {
-        List<Contact> allContacts = contactService.obtainAllContacts();
-        Gson contactsGson = new Gson();
-        Type type = new TypeToken<List<Contact>>() {
-        }.getType();
-        return contactsGson.toJson(allContacts, type);
+        return obtainContactList("all");
+    }
+
+    @GetMapping("/mycontacts")
+    public String listMyContact() {
+        return obtainContactList("byUser");
     }
 
     @DeleteMapping("/delete/{id}")
@@ -59,6 +60,20 @@ public class ContactController {
             return servletService.createResponseEntity("contact deleted", "success", HttpStatus.I_AM_A_TEAPOT);
         } else {
             return servletService.createResponseEntity("cannot delete contact", "error", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private String obtainContactList(String allOrByUser) {
+        List<Contact> allContacts = (allOrByUser.equals("all")) ?
+                contactService.obtainAllContacts() :
+                contactService.obtainMyContacts();
+        if (allContacts.size() != 0) {
+            Gson contactsGson = new Gson();
+            Type type = new TypeToken<List<Contact>>() {
+            }.getType();
+            return contactsGson.toJson(allContacts, type);
+        } else {
+            return "nothing to show";
         }
     }
 
