@@ -71,4 +71,11 @@ public class ContactService {
     private Long obtainCurrentUserId() {
         return obtainUserByName(obtainUserNameFromSecurity()).getId();
     }
+
+    public void editContact(Long id, JsonNode newContactJson) {
+        Contact contactToEdit = contactRepository.findOne(id);
+        contactToEdit.setContactName(newContactJson.get("contactName").textValue());
+        contactToEdit.setContactDescription(newContactJson.get("contactDescription").textValue());
+        contactRepository.save(contactToEdit);
+    }
 }

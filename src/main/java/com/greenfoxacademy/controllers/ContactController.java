@@ -63,6 +63,18 @@ public class ContactController {
         }
     }
 
+    @PutMapping("/edit/{id}")
+    public ResponseEntity editContact(@PathVariable Long id, @RequestBody String newContactData) throws Exception {
+        JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
+        Contact editedContact = contactService.createNewContact(newContactJson);
+        if (contactService.contactBelongsToUser(id) && contactService.newContactIsValid(editedContact)) {
+            contactService.editContact(id, newContactJson);
+            return servletService.createResponseEntity("contact edited", "success", HttpStatus.I_AM_A_TEAPOT);
+        } else {
+            return servletService.createResponseEntity("cannot edit contact", "error", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     private String obtainContactList(String allOrByUser) {
         List<Contact> allContacts = (allOrByUser.equals("all")) ?
                 contactService.obtainAllContacts() :
