@@ -55,4 +55,13 @@ public class ContactService {
     public List<Contact> obtainAllContacts() {
         return contactRepository.findAll();
     }
+
+    public void deleteContact(Long id) {
+        contactRepository.delete(id);
+    }
+
+    public boolean contactBelongsToUser(Long id) {
+        return contactRepository.findOne(id).getUser().getUserName().equals(obtainUserNameFromSecurity());
+    }
+
 }

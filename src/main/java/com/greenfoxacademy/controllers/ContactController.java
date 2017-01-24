@@ -10,10 +10,7 @@ import com.greenfoxacademy.service.HttpServletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -53,6 +50,16 @@ public class ContactController {
         Type type = new TypeToken<List<Contact>>() {
         }.getType();
         return contactsGson.toJson(allContacts, type);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity deleteContact(@PathVariable Long id) {
+        if (contactService.contactBelongsToUser(id)) {
+            contactService.deleteContact(id);
+            return servletService.createResponseEntity("contact deleted", "success", HttpStatus.I_AM_A_TEAPOT);
+        } else {
+            return servletService.createResponseEntity("cannot delete contact", "error", HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
