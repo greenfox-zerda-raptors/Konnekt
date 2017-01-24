@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by Jade Team on 2017.01.24..
  */
@@ -48,5 +50,9 @@ public class ContactService {
 
     public void saveNewContact(Contact newContact) {
         contactRepository.save(newContact);
+    }
+
+    public List<Contact> obtainAllContacts() {
+        return contactRepository.findAll();
     }
 }

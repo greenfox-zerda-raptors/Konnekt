@@ -2,6 +2,8 @@ package com.greenfoxacademy.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.HttpServletService;
@@ -12,6 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * Created by Jade Team on 2017.01.24..
@@ -42,8 +47,12 @@ public class ContactController {
     }
 
     @GetMapping("/allcontacts")
-    public void listAllContact() {
-
-
+    public String listAllContact() {
+        List<Contact> allContacts = contactService.obtainAllContacts();
+        Gson contactsGson = new Gson();
+        Type type = new TypeToken<List<Contact>>() {
+        }.getType();
+        return contactsGson.toJson(allContacts, type);
     }
+
 }
