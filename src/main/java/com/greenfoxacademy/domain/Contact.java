@@ -11,6 +11,7 @@ import javax.persistence.*;
  */
 
 @Entity
+@Table(schema = "konnekt", name = "contact")
 @Data
 public class Contact {
     @Id
@@ -23,7 +24,10 @@ public class Contact {
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)
     private Long id;
-    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
     private String contactName;
     private String contactDescription;
 }

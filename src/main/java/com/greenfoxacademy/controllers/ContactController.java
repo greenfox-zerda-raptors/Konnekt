@@ -41,9 +41,9 @@ public class ContactController {
         }
     }
 
-    @GetMapping("/mycontacts")
-    public void listMyContact(){
-        
+    @GetMapping("/allcontacts")
+    public void listAllContact() {
+
 
     }
 }

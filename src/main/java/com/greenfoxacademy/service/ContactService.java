@@ -2,6 +2,7 @@ package com.greenfoxacademy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.greenfoxacademy.domain.Contact;
+import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,15 +30,15 @@ public class ContactService {
                 getName();
     }
 
-    private Long obtainUserIdByName(String userName) {
-        return userService.findUserByName(userName).getId();
+    private User obtainUserIdByName(String userName) {
+        return userService.findUserByName(userName);
     }
 
     public Contact createNewContact(JsonNode newContactJson) {
         Contact contact = new Contact();
         contact.setContactName(newContactJson.get("contactName").textValue());
         contact.setContactDescription(newContactJson.get("contactDescription").textValue());
-        contact.setUserId(obtainUserIdByName(obtainUserNameFromSecurity()));
+        contact.setUser(obtainUserIdByName(obtainUserNameFromSecurity()));
         return contact;
     }
 
