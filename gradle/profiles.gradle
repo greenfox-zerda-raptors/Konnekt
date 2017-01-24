@@ -9,11 +9,6 @@ if (project.hasProperty('prod')) {
     propertyDrivenProfiles = prodProfiles
     apply from: rootProject.file('gradle/profile_prod.gradle');
 
-} else if (project.hasProperty('devmysql')) {
-    // Used for local development with
-    propertyDrivenProfiles = devMySQLProfiles
-    apply from: rootProject.file('gradle/profile_devmysql.gradle');
-
 } else if (project.hasProperty('dev')) {
     // Used for local development
     propertyDrivenProfiles = devProfiles

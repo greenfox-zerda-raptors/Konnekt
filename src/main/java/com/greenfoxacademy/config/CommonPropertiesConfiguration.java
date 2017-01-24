@@ -36,10 +36,4 @@ public class CommonPropertiesConfiguration extends PropertiesConfiguration {
                 "application_test.properties");
     }
 
-    @Bean
-    @Profile(Profiles.DEVMYSQL)
-    public static PropertySourcesPlaceholderConfigurer mysqlProperties() {
-        return createPropertySourcesPlaceholderConfigurer(
-                "application_devmysql.properties");
-    }
 }

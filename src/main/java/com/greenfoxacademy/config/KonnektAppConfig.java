@@ -23,64 +23,16 @@ public class KonnektAppConfig {
     }
 
     @Bean(name = "securityDataSource")
-    @Profile(Profiles.DEVMYSQL)
-    public DataSource getMySQLDataSource() {
-        return mySQLDataSource();
-    }
-
-    private DataSource mySQLDataSource() {
-        DriverManagerDataSource driverManagerDataSource =
-                new DriverManagerDataSource();
-        driverManagerDataSource.setDriverClassName("org.postgresql.jdbc3.Jdbc3ConnectionPool");
-        driverManagerDataSource.setUrl("jdbc:postgresql://localhost:5432/");
-        // Configure user name
-        driverManagerDataSource.setUsername("postgres");
-        // Obtain password from environmental variable
-        driverManagerDataSource.setPassword(System.getenv("DB_PASSWORD"));
-        return driverManagerDataSource;
-    }
-
-    @Bean(name = "securityDataSource")
     @Profile(Profiles.DEV)
     public DataSource getDevDataSource() throws URISyntaxException {
-        return devPostgresDataSource();
-    }
-
-
-    private DriverManagerDataSource devPostgresDataSource() throws URISyntaxException {
-        URI dbUri = new URI(System.getenv("DATABASE_URL"));
-        String username = dbUri.getUserInfo().split(":")[0];
-        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl(dbUrl);
-        dataSource.setUsername(username);
-
-
-        return dataSource;
+        return createPostgresDataSource("dev");
     }
 
     @Bean(name = "securityDataSource")
     @Profile(Profiles.PROD)
     public DataSource getProdDataSource() throws URISyntaxException {
-        return prodPostgresDataSource();
+        return createPostgresDataSource("prod");
     }
-
-    private DriverManagerDataSource prodPostgresDataSource() throws URISyntaxException {
-        URI dbUri = new URI(System.getenv("DATABASE_URL"));
-        String username = dbUri.getUserInfo().split(":")[0];
-        String password = dbUri.getUserInfo().split(":")[1];
-        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath() + "?sslmode=require";
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl(dbUrl);
-        dataSource.setUsername(username);
-        dataSource.setPassword(password);
-
-
-        return dataSource;
-    }
-
 
     @Bean(initMethod = "migrate")
     Flyway flyway() throws URISyntaxException {
@@ -92,4 +44,19 @@ public class KonnektAppConfig {
         return flyway;
     }
 
+    private DriverManagerDataSource createPostgresDataSource(String profile) throws URISyntaxException{
+        URI dbUri = new URI(System.getenv("DATABASE_URL"));
+        String username = dbUri.getUserInfo().split(":")[0];
+        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        if (profile.equals("prod")) {
+            String password = dbUri.getUserInfo().split(":")[1];
+            dbUrl += "?sslmode=require";
+            dataSource.setPassword(password);
+        }
+        dataSource.setUrl(dbUrl);
+        dataSource.setUsername(username);
+        return dataSource;
+    }
 }

@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {SecurityWebAppInitializer.class, WebSecurityConfig.class, KonnektAppConfig.class})
 @WebAppConfiguration
 @ActiveProfiles(Profiles.DEV)
-public class RegistrationControllerTest {
+public class LoginTest {
 
     @Autowired
     private WebApplicationContext context;
@@ -35,14 +35,12 @@ public class RegistrationControllerTest {
     @Autowired
     private Filter springSecurityFilterChain;
 
-
     private MockMvc mockMvc;
 
     @Before
     public void setup() {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
-                //.standaloneSetup(SecurityWebAppInitializer.class, WebSecurityConfig.class, KonnektAppConfig.class).addFilters(springSecurityFilterChain)
                 .addFilters(springSecurityFilterChain)
                 .apply(springSecurity())
                 .build();
@@ -53,16 +51,7 @@ public class RegistrationControllerTest {
         mockMvc.perform(post("/login").with(csrf())
                         .param("username", "admin")
                         .param("password", "admin")
-                //).andExpect(status().isOk());
-        ).andExpect(status().isFound());
+        ).andExpect(status().isOk());
     }
 
-//    @Test
-//    public void registerGetTest() throws Exception {
-//        mockMvc.perform(get("/register").with(user("admin")));
-//    }
-//
-//    @Test
-//    public void registerPostTest() {
-//    }
 }
