@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles(Profiles.DEV)
+@ActiveProfiles(Profiles.TEST)
 public class HomeControllerTest {
 
     private HomeController homeController;
