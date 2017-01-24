@@ -29,7 +29,7 @@ public class KonnektAppConfig {
     }
 
     @Bean(name = "securityDataSource")
-    @Profile(Profiles.PROD)
+    @Profile({Profiles.PROD, Profiles.TEST})
     public DataSource getProdDataSource() throws URISyntaxException {
         return createPostgresDataSource("prod");
     }
@@ -44,7 +44,7 @@ public class KonnektAppConfig {
         return flyway;
     }
 
-    private DriverManagerDataSource createPostgresDataSource(String profile) throws URISyntaxException{
+    private DriverManagerDataSource createPostgresDataSource(String profile) throws URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
         String username = dbUri.getUserInfo().split(":")[0];
         String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();

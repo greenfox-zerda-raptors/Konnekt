@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @WebAppConfiguration
-@ActiveProfiles(Profiles.DEV)
+@ActiveProfiles(Profiles.TEST)
 public class LoginTest {
 
     @Autowired
