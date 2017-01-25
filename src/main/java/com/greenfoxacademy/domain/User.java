@@ -1,5 +1,6 @@
 package com.greenfoxacademy.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -12,9 +13,8 @@ import javax.persistence.*;
  */
 @Entity
 @Data
-@Getter
-@Setter
 @Table(schema = "konnekt", name = "user")
+@JsonIgnoreProperties({"userPassword", "id", "userRole", "enabled"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,

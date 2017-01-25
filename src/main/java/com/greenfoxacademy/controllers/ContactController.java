@@ -3,7 +3,6 @@ package com.greenfoxacademy.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.HttpServletService;
@@ -11,8 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.greenfoxacademy.domain.ContactsDisplay;
 
-import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -76,14 +76,16 @@ public class ContactController {
     }
 
     private String obtainContactList(String allOrByUser) {
-        List<Contact> allContacts = (allOrByUser.equals("all")) ?
-                contactService.obtainAllContacts() :
+
+        List<Object[]> allContacts = (allOrByUser.equals("all"))? contactService.obtainAllContacts():
                 contactService.obtainMyContacts();
+        ArrayList<ContactsDisplay> contactsDisplays = new ArrayList<>();
+        for (Object[] contactArray : allContacts) {
+            contactsDisplays.add(new ContactsDisplay(contactArray[0], contactArray[1], contactArray[2], contactArray[3]));
+        }
         if (allContacts.size() != 0) {
             Gson contactsGson = new Gson();
-            Type type = new TypeToken<List<Contact>>() {
-            }.getType();
-            return contactsGson.toJson(allContacts, type);
+            return contactsGson.toJson(contactsDisplays);
         } else {
             return "nothing to show";
         }

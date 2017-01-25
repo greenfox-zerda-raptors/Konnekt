@@ -2,6 +2,7 @@ package com.greenfoxacademy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.greenfoxacademy.domain.Contact;
+import com.greenfoxacademy.domain.ContactsDisplay;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +53,9 @@ public class ContactService {
         contactRepository.save(newContact);
     }
 
-    public List<Contact> obtainAllContacts() {
-        return contactRepository.findAll();
+    public List<Object[]> obtainAllContacts() {
+//        return contactRepository.findAll();
+        return contactRepository.findAllContacts();
     }
 
     public void deleteContact(Long id) {
@@ -64,8 +66,10 @@ public class ContactService {
         return contactRepository.findOne(id).getUser().getUserName().equals(obtainUserNameFromSecurity());
     }
 
-    public List<Contact> obtainMyContacts() {
-        return contactRepository.findByUserId(obtainCurrentUserId());
+    public List<Object[]> obtainMyContacts() {
+        return contactRepository.findMyContacts(obtainCurrentUserId());
+
+//        return contactRepository.findByUserId(obtainCurrentUserId());
     }
 
     private Long obtainCurrentUserId() {
