@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Contact;
-import com.greenfoxacademy.service.ContactService;
-import com.greenfoxacademy.service.HttpServletService;
+import com.greenfoxacademy.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,12 +44,12 @@ public class ContactController {
 
     @GetMapping("/allcontacts")
     public String listAllContact() {
-        return obtainContactList("all");
+        return obtainContactList(() -> contactService.obtainAllContacts());
     }
 
     @GetMapping("/mycontacts")
     public String listMyContact() {
-        return obtainContactList("byUser");
+        return obtainContactList(() -> contactService.obtainMyContacts());
     }
 
     @DeleteMapping("/delete/{id}")
@@ -64,7 +63,7 @@ public class ContactController {
     }
 
     @PutMapping("/edit/{id}")
-    public ResponseEntity editContact(@PathVariable Long id, @RequestBody String newContactData) throws Exception {
+    public ResponseEntity editContact(@PathVariable() Long id, @RequestBody String newContactData) throws Exception {
         JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
         Contact editedContact = contactService.createNewContact(newContactJson);
         if (contactService.contactBelongsToUser(id) && contactService.newContactIsValid(editedContact)) {
@@ -75,10 +74,10 @@ public class ContactController {
         }
     }
 
-    private String obtainContactList(String allOrByUser) {
-
-        List<Object[]> allContacts = (allOrByUser.equals("all"))? contactService.obtainAllContacts():
-                contactService.obtainMyContacts();
+    private String obtainContactList(
+            ContactCollector contactCollector) {
+        List<Object[]> allContacts =
+                contactCollector.collectContacts();
         ArrayList<ContactsDisplay> contactsDisplays = new ArrayList<>();
         for (Object[] contactArray : allContacts) {
             contactsDisplays.add(new ContactsDisplay(contactArray[0], contactArray[1], contactArray[2], contactArray[3]));
