@@ -61,7 +61,7 @@ public class ContactService {
     }
 
     public boolean contactBelongsToUser(Long id) {
-        return contactRepository.findOne(id).getUser().getUserName().equals(obtainUserNameFromSecurity());
+        return contactRepository.findOne(id).getUser().getUsername().equals(obtainUserNameFromSecurity());
     }
 
     public List<Object[]> obtainMyContacts() {

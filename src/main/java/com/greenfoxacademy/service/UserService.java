@@ -1,6 +1,7 @@
 package com.greenfoxacademy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +25,26 @@ public class UserService {
     }
 
     public void save(User user) {
-        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
-    public boolean userExists(String userName) {
-        return findUserByName(userName) != null;
+    public boolean userExists(String username) {
+        return findUserByName(username) != null;
     }
 
-    public User findUserByName(String userName) {
-        return userRepository.findByUserName(userName);
+    public User findUserByName(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public User createUser(JsonNode registrationJson) {
-        User newUser = new User();
-        newUser.setUserName(registrationJson.get("username").textValue());
-        newUser.setUserPassword(registrationJson.get("password").textValue());
-        return newUser;
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(registrationJson, User.class);
     }
 
+
+    public boolean registrationIsValid(User newUser) {
+        return !userExists(newUser.getUsername())
+                && newUser.getPasswordConfirmation().equals(newUser.getPassword());
+    }
 }
