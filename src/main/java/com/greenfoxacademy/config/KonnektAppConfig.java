@@ -23,13 +23,13 @@ public class KonnektAppConfig {
     }
 
     @Bean(name = "securityDataSource")
-    @Profile(Profiles.DEV)
+    @Profile({Profiles.DEV, Profiles.TEST})
     public DataSource getDevDataSource() throws URISyntaxException {
         return createPostgresDataSource("dev");
     }
 
     @Bean(name = "securityDataSource")
-    @Profile({Profiles.PROD, Profiles.TEST})
+    @Profile(Profiles.PROD)
     public DataSource getProdDataSource() throws URISyntaxException {
         return createPostgresDataSource("prod");
     }
