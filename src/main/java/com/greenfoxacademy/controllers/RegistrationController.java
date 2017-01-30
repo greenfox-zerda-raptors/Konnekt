@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * Created by JadeTeam on 1/20/2017. Register new user
  */
-@Controller
+@BaseController
 public class RegistrationController {
     private final UserService userService;
     private HttpServletService servletService;

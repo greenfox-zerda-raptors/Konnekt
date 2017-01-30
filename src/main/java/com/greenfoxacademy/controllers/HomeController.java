@@ -14,10 +14,9 @@ import javax.servlet.http.HttpSession;
  * Created by JadeTeam on 1/16/2017. Controller v0
  */
 
-@Controller
+@BaseController
 public class HomeController {
 
-    @ResponseBody
     @RequestMapping(value = {"", "/"})
     public HttpStatus home() {
         return HttpStatus.OK;
