@@ -18,7 +18,7 @@ import java.util.List;
  * Created by Jade Team on 2017.01.24..
  */
 
-@RestController
+@BaseController
 public class ContactController {
 
     private ContactService contactService;
