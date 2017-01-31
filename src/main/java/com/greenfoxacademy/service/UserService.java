@@ -29,8 +29,12 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public boolean userExists(String username) {
-        return findUserByName(username) != null;
+    public boolean userExists(String email) {
+        return findUserByEmail(email) != null;
+    }
+
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public User findUserByName(String username) {
@@ -42,9 +46,17 @@ public class UserService {
         return mapper.convertValue(registrationJson, User.class);
     }
 
-
     public boolean registrationIsValid(User newUser) {
-        return !userExists(newUser.getUsername())
-                && newUser.getPasswordConfirmation().equals(newUser.getPassword());
+        return !userExists(newUser.getEmail())
+                && emailIsValid(newUser.getEmail())
+                && passwordsMatch(newUser);
+    }
+
+    private boolean emailIsValid(String email) {
+        return email.contains("@") && email.contains(".");
+    }
+
+    private boolean passwordsMatch(User newUser) {
+        return newUser.getPasswordConfirmation().equals(newUser.getPassword());
     }
 }
