@@ -8,7 +8,6 @@ import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,18 +39,12 @@ public class RegistrationController {
     public ResponseEntity registerPost(@RequestBody String regFormData) throws IOException {
         JsonNode registrationJson = new ObjectMapper().readValue(regFormData, JsonNode.class);
         User newUser = userService.createUser(registrationJson);
-        String passwordConfirmation = registrationJson.get("passwordConfirmation").textValue();
-        if (registrationIsValid(newUser, passwordConfirmation)) {
+        if (userService.registrationIsValid(newUser)) {
             userService.save(newUser);
             return servletService.createResponseEntity("user created", "success", HttpStatus.CREATED);
         } else {
             return servletService.createResponseEntity("cannot register user", "error", HttpStatus.BAD_REQUEST);
         }
-    }
-
-    private boolean registrationIsValid(User newUser, String passwordConfirmation) {
-        return !userService.userExists(newUser.getUserName())
-                && passwordConfirmation.equals(newUser.getUserPassword());
     }
 
 }

@@ -1,6 +1,7 @@
 package com.greenfoxacademy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +25,38 @@ public class UserService {
     }
 
     public void save(User user) {
-        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
-    public boolean userExists(String userName) {
-        return findUserByName(userName) != null;
+    public boolean userExists(String email) {
+        return findUserByEmail(email) != null;
     }
 
-    public User findUserByName(String userName) {
-        return userRepository.findByUserName(userName);
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public User findUserByName(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public User createUser(JsonNode registrationJson) {
-        User newUser = new User();
-        newUser.setUserName(registrationJson.get("username").textValue());
-        newUser.setUserPassword(registrationJson.get("password").textValue());
-        return newUser;
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(registrationJson, User.class);
     }
 
+    public boolean registrationIsValid(User newUser) {
+        return !userExists(newUser.getEmail())
+                && emailIsValid(newUser.getEmail())
+                && passwordsMatch(newUser);
+    }
+
+    private boolean emailIsValid(String email) {
+        return email.contains("@") && email.contains(".");
+    }
+
+    private boolean passwordsMatch(User newUser) {
+        return newUser.getPasswordConfirmation().equals(newUser.getPassword());
+    }
 }
