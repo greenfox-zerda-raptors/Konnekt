@@ -23,7 +23,7 @@ public class KonnektAppConfig {
     }
 
     @Bean(name = "securityDataSource")
-    @Profile({Profiles.DEV, Profiles.TEST})
+    @Profile({Profiles.DEV})
     public DataSource getDevDataSource() throws URISyntaxException {
         return createPostgresDataSource("dev");
     }
@@ -35,11 +35,23 @@ public class KonnektAppConfig {
     }
 
     @Bean(initMethod = "migrate")
+    @Profile({Profiles.PROD, Profiles.DEV})
     Flyway flyway() throws URISyntaxException {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
         flyway.setSchemas("konnekt");
         flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
+        flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
+        return flyway;
+    }
+
+    @Bean(initMethod = "migrate", name = "flyway")
+    @Profile(Profiles.TEST)
+    Flyway flywayTest() throws URISyntaxException {
+        Flyway flyway = new Flyway();
+        flyway.setBaselineOnMigrate(true);
+        flyway.setSchemas("konnekt_test");
+        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration/test");
         flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
         return flyway;
     }
@@ -59,4 +71,12 @@ public class KonnektAppConfig {
         dataSource.setUsername(username);
         return dataSource;
     }
+
+    @Bean(name = "securityDataSource")
+    @Profile(Profiles.TEST)
+    public DataSource getTestDataSource() throws URISyntaxException {
+        return createPostgresDataSource("dev");
+    }
+
+
 }
