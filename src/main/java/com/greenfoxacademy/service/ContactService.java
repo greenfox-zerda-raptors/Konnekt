@@ -5,7 +5,6 @@ import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,10 +25,11 @@ public class ContactService {
     }
 
     private String obtainUserNameFromSecurity() {
-        return SecurityContextHolder.
-                getContext().
-                getAuthentication().
-                getName();
+        return "0";
+//                SecurityContextHolder.
+//                getContext().
+//                getAuthentication().
+//                getName();
     }
 
     private User obtainUserByName(String userName) {
@@ -77,5 +77,13 @@ public class ContactService {
         contactToEdit.setContactName(newContactJson.get("contactName").textValue());
         contactToEdit.setContactDescription(newContactJson.get("contactDescription").textValue());
         contactRepository.save(contactToEdit);
+    }
+
+    public void emptyRepositoryBeforeTest() {
+        contactRepository.deleteAll();
+    }
+
+    public Contact findContactByName(String contactName) {
+        return contactRepository.findByContactName(contactName);
     }
 }
