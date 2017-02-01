@@ -8,7 +8,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.SecureRandom;
+import java.util.List;
 
 /**
  * Created by Lenovo on 1/31/2017.
@@ -49,5 +51,13 @@ public class SessionService {
                 .get(0))
                 .getUser()
                 .getId();
+    }
+
+    public HttpHeaders generateHeaders(String key,String value){
+        HttpHeaders responseHeaders = new HttpHeaders();
+        URI location = URI.create("https://raptor-konnekt.herokuapp.com");
+        responseHeaders.setLocation(location);
+        responseHeaders.set(key, value);
+        return responseHeaders;
     }
 }

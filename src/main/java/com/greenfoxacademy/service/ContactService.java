@@ -25,13 +25,6 @@ public class ContactService {
         this.contactRepository = contactRepository;
     }
 
-//    private String obtainUserNameFromSecurity() {
-//        return SecurityContextHolder.
-//                getContext().
-//                getAuthentication().
-//                getName();
-//    }
-
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
     }
@@ -65,23 +58,21 @@ public class ContactService {
     }
 
     public boolean contactBelongsToUser(Long contactId, Long userId) {
-        return contactRepository.findOne(contactId).getUser().getId().equals(userId);
+        return findContactById(contactId).getUser().getId().equals(userId);
     }
 
     public List<Object[]> obtainMyContacts(Long userId) {
         return contactRepository.findMyContacts(userId);
     }
 
-    private Long obtainCurrentUserId() {
-
-//        return obtainUserByName(obtainUserNameFromSecurity()).getId();
-        return 1L;
-    }
-
     public void editContact(Long id, JsonNode newContactJson) {
-        Contact contactToEdit = contactRepository.findOne(id);
+        Contact contactToEdit = findContactById(id);
         contactToEdit.setContactName(newContactJson.get("contactName").textValue());
         contactToEdit.setContactDescription(newContactJson.get("contactDescription").textValue());
         contactRepository.save(contactToEdit);
+    }
+
+    public Contact findContactById(Long contactId) {
+        return contactRepository.findOne(contactId);
     }
 }

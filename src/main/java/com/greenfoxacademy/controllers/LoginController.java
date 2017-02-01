@@ -2,10 +2,10 @@ package com.greenfoxacademy.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.responses.SuccessfulLoginAndRegistrationResponse;
-import com.greenfoxacademy.responses.UnauthorizedResponse;
+import com.greenfoxacademy.responses.UserResponse;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +24,14 @@ public class LoginController {
 
     private final UserService userService;
     private final SessionService sessionService;
+    private Gson gson;
 
     @Autowired
     public LoginController(UserService userService,
                            SessionService sessionService) {
         this.userService = userService;
         this.sessionService = sessionService;
+        gson = new Gson();
     }
 
     @PostMapping("/login")
@@ -39,11 +41,13 @@ public class LoginController {
             User currentUser = userService.findUserByEmail(loginJson.get("email").textValue());
             Session currentSession = sessionService.createSession(currentUser);
             sessionService.saveSession(currentSession);
-            SuccessfulLoginAndRegistrationResponse success =
-                    new SuccessfulLoginAndRegistrationResponse(currentSession.getToken(), currentUser);
-            return success.generateResponse();
+            UserResponse userResponse = new UserResponse(currentUser.getId());
+            return new ResponseEntity<>(gson.toJson(userResponse),
+                    sessionService.generateHeaders("session_token",currentSession.getToken()),
+                    HttpStatus.CREATED);
+
         } else {
-            return new UnauthorizedResponse().generateResponse(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("", sessionService.generateHeaders("", ""), HttpStatus.UNAUTHORIZED);
         }
     }
 }

@@ -2,11 +2,10 @@ package com.greenfoxacademy.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.responses.SuccessfulLoginAndRegistrationResponse;
-import com.greenfoxacademy.responses.UnauthorizedResponse;
-import com.greenfoxacademy.service.HttpServletService;
+import com.greenfoxacademy.responses.UserResponse;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +25,13 @@ import java.io.IOException;
 public class RegistrationController {
     private final UserService userService;
     private SessionService sessionService;
+    private Gson gson;
 
     @Autowired
     public RegistrationController(UserService userService, SessionService sessionService) {
         this.userService = userService;
         this.sessionService = sessionService;
+        this.gson = new Gson();
     }
 
     @GetMapping("/register")
@@ -47,11 +48,12 @@ public class RegistrationController {
             userService.save(newUser);
             Session currentSession = sessionService.createSession(newUser);
             sessionService.saveSession(currentSession);
-            SuccessfulLoginAndRegistrationResponse success =
-                    new SuccessfulLoginAndRegistrationResponse(currentSession.getToken(), newUser);
-            return success.generateResponse();
+            UserResponse userResponse = new UserResponse(newUser.getId());
+            return new ResponseEntity<>(gson.toJson(userResponse),
+                    sessionService.generateHeaders("session_token", currentSession.getToken()),
+                    HttpStatus.CREATED);
         } else {
-            return new UnauthorizedResponse().generateResponse(HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("", sessionService.generateHeaders("",""), HttpStatus.FORBIDDEN);
         }
     }
 

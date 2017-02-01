@@ -8,13 +8,13 @@ import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.greenfoxacademy.domain.ContactsDisplay;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Created by Jade Team on 2017.01.24..
@@ -25,12 +25,14 @@ public class ContactController {
 
     private ContactService contactService;
     private SessionService sessionService;
+    private Gson gson;
 
     @Autowired
     public ContactController(ContactService contactService,
                              SessionService sessionService) {
         this.contactService = contactService;
         this.sessionService = sessionService;
+        gson = new Gson();
     }
 
     @PostMapping("/add")
@@ -43,23 +45,33 @@ public class ContactController {
             Contact newContact = contactService.createNewContact(newContactJson, userId);
             if (contactService.newContactIsValid(newContact)) {
                 contactService.saveNewContact(newContact);
-                return new CreatedResponse().generateResponse();
+                SingleContactResponse singleContactResponse = new SingleContactResponse(newContact);
+                return new ResponseEntity<>(gson.toJson(singleContactResponse),
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.CREATED);
             } else {
-                return new BadRequestResponse().generateResponse();
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.BAD_REQUEST);
             }
         } else {
-            return new UnauthorizedResponse().generateResponse();
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
-
     }
 
     @GetMapping("/allcontacts")
     public ResponseEntity listAllContact(@RequestHeader HttpHeaders headers) {
         if (userIsAuthenticated(headers)) {
             String contacts = obtainContactList(() -> contactService.obtainAllContacts());
-            return  new ListedItemsResponse(contacts).generateResponse();
+            return new ResponseEntity<>(new ContactListResponse(contacts),
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.OK);
         } else {
-            return new UnauthorizedResponse().generateResponse();
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -68,9 +80,14 @@ public class ContactController {
         if (userIsAuthenticated(headers)) {
             String contacts = obtainContactList(() ->
                     contactService.obtainMyContacts(sessionService.obtainUserIdFromToken(headers)));
-            return new ListedItemsResponse(contacts).generateResponse();
+            return new ResponseEntity<>(new ContactListResponse(contacts),
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.OK);
         } else {
-            return new UnauthorizedResponse().generateResponse();
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
+
         }
     }
 
@@ -81,13 +98,18 @@ public class ContactController {
             Long userId = sessionService.obtainUserIdFromToken(headers);
             if (contactService.contactBelongsToUser(contactId, userId)) {
                 contactService.deleteContact(contactId);
-                return new OKResponse().generateResponse();
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.OK);
             } else {
-                return new BadRequestResponse().generateResponse();
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.BAD_REQUEST);
             }
-        }
-        else {
-            return new UnauthorizedResponse().generateResponse();
+        } else {
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -101,12 +123,21 @@ public class ContactController {
             Contact editedContact = contactService.createNewContact(newContactJson, userId);
             if (contactService.contactBelongsToUser(contactId, userId) && contactService.newContactIsValid(editedContact)) {
                 contactService.editContact(contactId, newContactJson);
-                return new OKResponse().generateResponse();
+                SingleContactResponse singleContactResponse =
+                        new SingleContactResponse(contactService.findContactById(contactId));
+                return new ResponseEntity<>(gson.toJson(singleContactResponse),
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.OK);
+
             } else {
-                return new BadRequestResponse().generateResponse();
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.BAD_REQUEST);
             }
         } else {
-            return new UnauthorizedResponse().generateResponse();
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -128,14 +159,6 @@ public class ContactController {
 
     private boolean userIsAuthenticated(@RequestHeader HttpHeaders headers) {
         return sessionService.tokenExists(headers);
-    }
-
-    public ResponseEntity manageContacts(){
-        return null;
-    }
-
-    public boolean validateRequest(Function f){
-        return true;
     }
 
 }
