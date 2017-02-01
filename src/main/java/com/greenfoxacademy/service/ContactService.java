@@ -25,12 +25,12 @@ public class ContactService {
         this.contactRepository = contactRepository;
     }
 
-    private String obtainUserNameFromSecurity() {
-        return SecurityContextHolder.
-                getContext().
-                getAuthentication().
-                getName();
-    }
+//    private String obtainUserNameFromSecurity() {
+//        return SecurityContextHolder.
+//                getContext().
+//                getAuthentication().
+//                getName();
+//    }
 
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
@@ -40,7 +40,7 @@ public class ContactService {
         Contact contact = new Contact();
         contact.setContactName(newContactJson.get("contactName").textValue());
         contact.setContactDescription(newContactJson.get("contactDescription").textValue());
-        contact.setUser(obtainUserByName(obtainUserNameFromSecurity()));
+//        contact.setUser(obtainUserByName(obtainUserNameFromSecurity()));
         return contact;
     }
 
@@ -61,15 +61,18 @@ public class ContactService {
     }
 
     public boolean contactBelongsToUser(Long id) {
-        return contactRepository.findOne(id).getUser().getUsername().equals(obtainUserNameFromSecurity());
+//        return contactRepository.findOne(id).getUser().getUsername().equals(obtainUserNameFromSecurity());
+        return true;
     }
 
-    public List<Object[]> obtainMyContacts() {
-        return contactRepository.findMyContacts(obtainCurrentUserId());
+    public List<Object[]> obtainMyContacts(Long userId) {
+        return contactRepository.findMyContacts(userId);
     }
 
     private Long obtainCurrentUserId() {
-        return obtainUserByName(obtainUserNameFromSecurity()).getId();
+
+//        return obtainUserByName(obtainUserNameFromSecurity()).getId();
+        return 1L;
     }
 
     public void editContact(Long id, JsonNode newContactJson) {

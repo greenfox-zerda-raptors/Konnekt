@@ -15,17 +15,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    private final PasswordEncoder passwordEncoder;
+//    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+//        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword("12345");
         userRepository.save(user);
     }
 
@@ -33,7 +34,7 @@ public class UserService {
         return findUserByEmail(email) != null;
     }
 
-    private User findUserByEmail(String email) {
+    public User findUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
@@ -58,5 +59,13 @@ public class UserService {
 
     private boolean passwordsMatch(User newUser) {
         return newUser.getPasswordConfirmation().equals(newUser.getPassword());
+    }
+
+    public boolean userLoginIsValid(JsonNode loginJson) {
+        String email = loginJson.get("email").textValue();
+        return  userExists(email) &&
+                findUserByEmail(email)
+                .getPassword()
+                .equals(loginJson.get("password").textValue());
     }
 }

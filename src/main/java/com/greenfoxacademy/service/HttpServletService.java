@@ -20,7 +20,7 @@ public class HttpServletService {
         HttpHeaders responseHeaders = new HttpHeaders();
         URI location = URI.create("localhost:8080");
         responseHeaders.setLocation(location);
-        responseHeaders.set("status", headerValue);
+        responseHeaders.set("token", headerValue);
         return responseHeaders;
     }
 

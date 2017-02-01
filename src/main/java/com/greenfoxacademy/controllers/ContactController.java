@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +24,15 @@ public class ContactController {
 
     private ContactService contactService;
     private HttpServletService servletService;
+    private SessionService sessionService;
 
     @Autowired
-    public ContactController(ContactService contactService, HttpServletService servletService) {
+    public ContactController(ContactService contactService,
+                             HttpServletService servletService,
+                             SessionService sessionService) {
         this.contactService = contactService;
         this.servletService = servletService;
+        this.sessionService = sessionService;
     }
 
     @PostMapping("/add")
@@ -43,13 +48,22 @@ public class ContactController {
     }
 
     @GetMapping("/allcontacts")
-    public String listAllContact() {
-        return obtainContactList(() -> contactService.obtainAllContacts());
+    public String listAllContact(@RequestHeader HttpHeaders headers) {
+        if (sessionService.tokenExists(headers)) {
+            return obtainContactList(() -> contactService.obtainAllContacts());
+        } else {
+            return "401";
+        }
     }
 
     @GetMapping("/mycontacts")
-    public String listMyContact() {
-        return obtainContactList(() -> contactService.obtainMyContacts());
+    public String listMyContact(@RequestHeader HttpHeaders headers) {
+        if (sessionService.tokenExists(headers)) {
+            return obtainContactList(() ->
+                    contactService.obtainMyContacts(sessionService.obtainUserIdFromToken(headers)));
+        } else {
+            return "401";
+        }
     }
 
     @DeleteMapping("/delete/{id}")
