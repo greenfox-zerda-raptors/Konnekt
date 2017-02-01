@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.HashMap;
 
 /**
- * Created by Lenovo on 2/1/2017.
+ * Created by BSoptei on 2/1/2017.
  */
 
 public class UnauthorizedResponse extends CustomServerResponse {

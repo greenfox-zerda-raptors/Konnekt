@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import java.net.URI;
 
 /**
- * Created by Lenovo on 2/1/2017.
+ * Created by BSoptei on 2/1/2017.
  */
 public abstract class  CustomServerResponse {
 

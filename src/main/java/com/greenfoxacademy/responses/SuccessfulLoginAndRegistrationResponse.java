@@ -10,7 +10,7 @@ import java.net.URI;
 import java.util.HashMap;
 
 /**
- * Created by Lenovo on 2/1/2017.
+ * Created by BSoptei on 2/1/2017.
  */
 public class SuccessfulLoginAndRegistrationResponse extends CustomServerResponse {
     private String token;
@@ -34,7 +34,7 @@ public class SuccessfulLoginAndRegistrationResponse extends CustomServerResponse
         HttpHeaders responseHeaders = new HttpHeaders();
         URI location = URI.create("https://raptor-konnekt.herokuapp.com");
         responseHeaders.setLocation(location);
-        responseHeaders.set("token",token);
+        responseHeaders.set("session_token",token);
         return responseHeaders;
     }
 }

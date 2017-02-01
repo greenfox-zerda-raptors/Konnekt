@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Created by Lenovo on 2/1/2017.
+ * Created by BSoptei on 2/1/2017.
  */
 public class CreatedResponse extends CustomServerResponse {
     @Override

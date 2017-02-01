@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.io.IOException;
 
 /**
- * Created by Lenovo on 1/31/2017.
+ * Created by BSoptei on 1/31/2017.
  */
 @BaseController
 public class LoginController {
