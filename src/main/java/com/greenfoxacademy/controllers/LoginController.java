@@ -2,9 +2,10 @@ package com.greenfoxacademy.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.greenfoxacademy.domain.AuthenticatedUser;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
+import com.greenfoxacademy.responses.SuccessfulLoginResponse;
+import com.greenfoxacademy.responses.UnauthorizedResponse;
 import com.greenfoxacademy.service.HttpServletService;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
@@ -23,15 +24,12 @@ import java.io.IOException;
 public class LoginController {
 
     private final UserService userService;
-    private final HttpServletService httpServletService;
     private final SessionService sessionService;
 
     @Autowired
     public LoginController(UserService userService,
-                           HttpServletService httpServletService,
                            SessionService sessionService) {
         this.userService = userService;
-        this.httpServletService = httpServletService;
         this.sessionService = sessionService;
     }
 
@@ -42,9 +40,9 @@ public class LoginController {
             User currentUser = userService.findUserByEmail(loginJson.get("email").textValue());
             Session currentSession = sessionService.createSession(currentUser);
             sessionService.saveSession(currentSession);
-            return httpServletService.createResponseEntity(currentUser.getEmail(), currentSession.getToken(), HttpStatus.OK);
+            return new SuccessfulLoginResponse(currentSession.getToken()).generateResponse();
         } else {
-            return httpServletService.createResponseEntity("", "", HttpStatus.UNAUTHORIZED);
+            return new UnauthorizedResponse().generateResponse();
         }
     }
 }

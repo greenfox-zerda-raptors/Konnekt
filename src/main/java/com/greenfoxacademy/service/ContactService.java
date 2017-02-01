@@ -36,12 +36,16 @@ public class ContactService {
         return userService.findUserByName(userName);
     }
 
-    public Contact createNewContact(JsonNode newContactJson) {
+    public Contact createNewContact(JsonNode newContactJson, Long userId) {
         Contact contact = new Contact();
         contact.setContactName(newContactJson.get("contactName").textValue());
         contact.setContactDescription(newContactJson.get("contactDescription").textValue());
-//        contact.setUser(obtainUserByName(obtainUserNameFromSecurity()));
+        contact.setUser(obtainUserById(userId));
         return contact;
+    }
+
+    private User obtainUserById(Long userId) {
+        return userService.findUserById(userId);
     }
 
     public boolean newContactIsValid(Contact contact) {
@@ -60,9 +64,8 @@ public class ContactService {
         contactRepository.delete(id);
     }
 
-    public boolean contactBelongsToUser(Long id) {
-//        return contactRepository.findOne(id).getUser().getUsername().equals(obtainUserNameFromSecurity());
-        return true;
+    public boolean contactBelongsToUser(Long contactId, Long userId) {
+        return contactRepository.findOne(contactId).getUser().getId().equals(userId);
     }
 
     public List<Object[]> obtainMyContacts(Long userId) {

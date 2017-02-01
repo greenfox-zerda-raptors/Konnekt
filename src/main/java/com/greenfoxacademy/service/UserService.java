@@ -68,4 +68,8 @@ public class UserService {
                 .getPassword()
                 .equals(loginJson.get("password").textValue());
     }
+
+    public User findUserById(Long userId) {
+        return userRepository.findOne(userId);
+    }
 }

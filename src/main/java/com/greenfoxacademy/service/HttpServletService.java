@@ -1,7 +1,6 @@
 package com.greenfoxacademy.service;
 
 import com.google.gson.Gson;
-import com.greenfoxacademy.controllers.CustomResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,9 @@ public class HttpServletService {
                                                HttpStatus httpStatus) {
         Gson responseGson = new Gson();
         return new ResponseEntity<>
-                (responseGson.toJson(new CustomResponse(response)),
+                (responseGson.toJson(""
+//                        new CustomResponse(response)
+                ),
                         createResponseHeaders(headerValue),
                         httpStatus);
     }
