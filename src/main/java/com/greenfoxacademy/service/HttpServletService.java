@@ -18,7 +18,7 @@ public class HttpServletService {
 
     private HttpHeaders createResponseHeaders(String headerValue) {
         HttpHeaders responseHeaders = new HttpHeaders();
-        URI location = URI.create("localhost:8080");
+        URI location = URI.create("localhost:8080"); //TODO change to not hardcoded address based on response specification
         responseHeaders.setLocation(location);
         responseHeaders.set("status", headerValue);
         return responseHeaders;
