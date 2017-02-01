@@ -8,11 +8,15 @@ import java.util.HashMap;
 /**
  * Created by Lenovo on 2/1/2017.
  */
+
 public class UnauthorizedResponse extends CustomServerResponse {
+
+    public ResponseEntity generateResponse(HttpStatus status) {
+        return new ResponseEntity<>("", createResponseHeaders(), status);
+    }
 
     @Override
     public ResponseEntity generateResponse() {
-        return new ResponseEntity<>("", createResponseHeaders(), HttpStatus.UNAUTHORIZED);
+        return null;
     }
-
 }

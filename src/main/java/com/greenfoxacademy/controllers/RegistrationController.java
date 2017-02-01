@@ -2,8 +2,12 @@ package com.greenfoxacademy.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
+import com.greenfoxacademy.responses.SuccessfulLoginAndRegistrationResponse;
+import com.greenfoxacademy.responses.UnauthorizedResponse;
 import com.greenfoxacademy.service.HttpServletService;
+import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,12 +25,12 @@ import java.io.IOException;
 @BaseController
 public class RegistrationController {
     private final UserService userService;
-    private HttpServletService servletService;
+    private SessionService sessionService;
 
     @Autowired
-    public RegistrationController(UserService userService, HttpServletService servletService) {
+    public RegistrationController(UserService userService, SessionService sessionService) {
         this.userService = userService;
-        this.servletService = servletService;
+        this.sessionService = sessionService;
     }
 
     @GetMapping("/register")
@@ -41,9 +45,13 @@ public class RegistrationController {
         User newUser = userService.createUser(registrationJson);
         if (userService.registrationIsValid(newUser)) {
             userService.save(newUser);
-            return servletService.createResponseEntity("user created", "success", HttpStatus.CREATED);
+            Session currentSession = sessionService.createSession(newUser);
+            sessionService.saveSession(currentSession);
+            SuccessfulLoginAndRegistrationResponse success =
+                    new SuccessfulLoginAndRegistrationResponse(currentSession.getToken(), newUser);
+            return success.generateResponse();
         } else {
-            return servletService.createResponseEntity("cannot register user", "error", HttpStatus.BAD_REQUEST);
+            return new UnauthorizedResponse().generateResponse(HttpStatus.FORBIDDEN);
         }
     }
 

@@ -26,7 +26,7 @@ public class SuccessfulLoginAndRegistrationResponse extends CustomServerResponse
         HashMap <String, Long> body = new HashMap<>();
         body.put("user_id", user.getId());
         Gson gson = new Gson();
-        return new ResponseEntity<>(body, createResponseHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(body, createResponseHeaders(), HttpStatus.CREATED);
     }
 
     @Override
