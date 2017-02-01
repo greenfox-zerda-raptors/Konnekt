@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Contact;
+import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,55 +24,120 @@ import java.util.List;
 public class ContactController {
 
     private ContactService contactService;
-    private HttpServletService servletService;
+    private SessionService sessionService;
+    private Gson gson;
 
     @Autowired
-    public ContactController(ContactService contactService, HttpServletService servletService) {
+    public ContactController(ContactService contactService,
+                             SessionService sessionService) {
         this.contactService = contactService;
-        this.servletService = servletService;
+        this.sessionService = sessionService;
+        gson = new Gson();
     }
 
     @PostMapping("/add")
-    public ResponseEntity addNewContact(@RequestBody String newContactData) throws Exception {
-        JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
-        Contact newContact = contactService.createNewContact(newContactJson);
-        if (contactService.newContactIsValid(newContact)) {
-            contactService.saveNewContact(newContact);
-            return servletService.createResponseEntity("contact created", "success", HttpStatus.CREATED);
+    public ResponseEntity addNewContact(@RequestBody String newContactData,
+                                        @RequestHeader HttpHeaders headers) throws Exception {
+        if (userIsAuthenticated(headers)) {
+
+            JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
+            Long userId = sessionService.obtainUserIdFromToken(headers);
+            Contact newContact = contactService.createNewContact(newContactJson, userId);
+            if (contactService.newContactIsValid(newContact)) {
+                contactService.saveNewContact(newContact);
+                SingleContactResponse singleContactResponse = new SingleContactResponse(newContact);
+                return new ResponseEntity<>(gson.toJson(singleContactResponse),
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.BAD_REQUEST);
+            }
         } else {
-            return servletService.createResponseEntity("cannot create contact", "error", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/allcontacts")
-    public String listAllContact() {
-        return obtainContactList(() -> contactService.obtainAllContacts());
+    public ResponseEntity listAllContact(@RequestHeader HttpHeaders headers) {
+        if (userIsAuthenticated(headers)) {
+            String contacts = obtainContactList(() -> contactService.obtainAllContacts());
+            return new ResponseEntity<>(new ContactListResponse(contacts),
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @GetMapping("/mycontacts")
-    public String listMyContact() {
-        return obtainContactList(() -> contactService.obtainMyContacts());
+    public ResponseEntity listMyContacts(@RequestHeader HttpHeaders headers) {
+        if (userIsAuthenticated(headers)) {
+            String contacts = obtainContactList(() ->
+                    contactService.obtainMyContacts(sessionService.obtainUserIdFromToken(headers)));
+            return new ResponseEntity<>(new ContactListResponse(contacts),
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
+
+        }
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity deleteContact(@PathVariable Long id) {
-        if (contactService.contactBelongsToUser(id)) {
-            contactService.deleteContact(id);
-            return servletService.createResponseEntity("contact deleted", "success", HttpStatus.I_AM_A_TEAPOT);
+    public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
+                                        @RequestHeader HttpHeaders headers) {
+        if (userIsAuthenticated(headers)) {
+            Long userId = sessionService.obtainUserIdFromToken(headers);
+            if (contactService.contactBelongsToUser(contactId, userId)) {
+                contactService.deleteContact(contactId);
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.BAD_REQUEST);
+            }
         } else {
-            return servletService.createResponseEntity("cannot delete contact", "error", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PutMapping("/edit/{id}")
-    public ResponseEntity editContact(@PathVariable() Long id, @RequestBody String newContactData) throws Exception {
-        JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
-        Contact editedContact = contactService.createNewContact(newContactJson);
-        if (contactService.contactBelongsToUser(id) && contactService.newContactIsValid(editedContact)) {
-            contactService.editContact(id, newContactJson);
-            return servletService.createResponseEntity("contact edited", "success", HttpStatus.I_AM_A_TEAPOT);
+    public ResponseEntity editContact(@PathVariable("id") Long contactId,
+                                      @RequestBody String newContactData,
+                                      @RequestHeader HttpHeaders headers) throws Exception {
+        if (userIsAuthenticated(headers)) {
+            Long userId = sessionService.obtainUserIdFromToken(headers);
+            JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
+            Contact editedContact = contactService.createNewContact(newContactJson, userId);
+            if (contactService.contactBelongsToUser(contactId, userId) && contactService.newContactIsValid(editedContact)) {
+                contactService.editContact(contactId, newContactJson);
+                SingleContactResponse singleContactResponse =
+                        new SingleContactResponse(contactService.findContactById(contactId));
+                return new ResponseEntity<>(gson.toJson(singleContactResponse),
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.OK);
+
+            } else {
+                return new ResponseEntity<>("",
+                        sessionService.generateHeaders("", ""),
+                        HttpStatus.BAD_REQUEST);
+            }
         } else {
-            return servletService.createResponseEntity("cannot edit contact", "error", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("",
+                    sessionService.generateHeaders("", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -88,6 +155,10 @@ public class ContactController {
         } else {
             return "nothing to show";
         }
+    }
+
+    private boolean userIsAuthenticated(@RequestHeader HttpHeaders headers) {
+        return sessionService.tokenExists(headers);
     }
 
 }

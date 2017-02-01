@@ -25,23 +25,20 @@ public class ContactService {
         this.contactRepository = contactRepository;
     }
 
-    private String obtainUserNameFromSecurity() {
-        return SecurityContextHolder.
-                getContext().
-                getAuthentication().
-                getName();
-    }
-
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
     }
 
-    public Contact createNewContact(JsonNode newContactJson) {
+    public Contact createNewContact(JsonNode newContactJson, Long userId) {
         Contact contact = new Contact();
         contact.setContactName(newContactJson.get("contactName").textValue());
         contact.setContactDescription(newContactJson.get("contactDescription").textValue());
-        contact.setUser(obtainUserByName(obtainUserNameFromSecurity()));
+        contact.setUser(obtainUserById(userId));
         return contact;
+    }
+
+    private User obtainUserById(Long userId) {
+        return userService.findUserById(userId);
     }
 
     public boolean newContactIsValid(Contact contact) {
@@ -60,22 +57,22 @@ public class ContactService {
         contactRepository.delete(id);
     }
 
-    public boolean contactBelongsToUser(Long id) {
-        return contactRepository.findOne(id).getUser().getUserName().equals(obtainUserNameFromSecurity());
+    public boolean contactBelongsToUser(Long contactId, Long userId) {
+        return findContactById(contactId).getUser().getId().equals(userId);
     }
 
-    public List<Object[]> obtainMyContacts() {
-        return contactRepository.findMyContacts(obtainCurrentUserId());
-    }
-
-    private Long obtainCurrentUserId() {
-        return obtainUserByName(obtainUserNameFromSecurity()).getId();
+    public List<Object[]> obtainMyContacts(Long userId) {
+        return contactRepository.findMyContacts(userId);
     }
 
     public void editContact(Long id, JsonNode newContactJson) {
-        Contact contactToEdit = contactRepository.findOne(id);
+        Contact contactToEdit = findContactById(id);
         contactToEdit.setContactName(newContactJson.get("contactName").textValue());
         contactToEdit.setContactDescription(newContactJson.get("contactDescription").textValue());
         contactRepository.save(contactToEdit);
+    }
+
+    public Contact findContactById(Long contactId) {
+        return contactRepository.findOne(contactId);
     }
 }

@@ -1,10 +1,10 @@
 package com.greenfoxacademy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,33 +14,57 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(User user) {
-        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
         userRepository.save(user);
     }
 
-    public boolean userExists(String userName) {
-        return findUserByName(userName) != null;
+    public boolean userExists(String email) {
+        return findUserByEmail(email) != null;
     }
 
-    public User findUserByName(String userName) {
-        return userRepository.findByUserName(userName);
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public User findUserByName(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public User createUser(JsonNode registrationJson) {
-        User newUser = new User();
-        newUser.setUserName(registrationJson.get("username").textValue());
-        newUser.setUserPassword(registrationJson.get("password").textValue());
-        return newUser;
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(registrationJson, User.class);
     }
 
+    public boolean registrationIsValid(User newUser) {
+        return !userExists(newUser.getEmail())
+                && emailIsValid(newUser.getEmail())
+                && passwordsMatch(newUser);
+    }
+
+    private boolean emailIsValid(String email) {
+        return email.contains("@") && email.contains(".");
+    }
+
+    private boolean passwordsMatch(User newUser) {
+        return newUser.getPassword_confirmation().equals(newUser.getPassword());
+    }
+
+    public boolean userLoginIsValid(JsonNode loginJson) {
+        String email = loginJson.get("email").textValue();
+        return  userExists(email) &&
+                findUserByEmail(email)
+                .getPassword()
+                .equals(loginJson.get("password").textValue());
+    }
+
+    public User findUserById(Long userId) {
+        return userRepository.findOne(userId);
+    }
 }
