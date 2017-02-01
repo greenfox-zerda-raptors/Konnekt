@@ -15,6 +15,7 @@ public class SuccessfulLoginResponse extends CustomServerResponse {
 
     @Override
     public ResponseEntity generateResponse() {
+
         ResponseEntity successfulLogin = new ResponseEntity<>("", createResponseHeaders(), HttpStatus.OK);
         successfulLogin.getHeaders().set("token",token);
         return successfulLogin;

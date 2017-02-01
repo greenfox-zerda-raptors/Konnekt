@@ -4,20 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Contact;
-import com.greenfoxacademy.responses.BadRequestResponse;
-import com.greenfoxacademy.responses.CreatedResponse;
-import com.greenfoxacademy.responses.OKResponse;
-import com.greenfoxacademy.responses.UnauthorizedResponse;
+import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.greenfoxacademy.domain.ContactsDisplay;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Created by Jade Team on 2017.01.24..
@@ -39,10 +36,15 @@ public class ContactController {
     @PostMapping("/add")
     public ResponseEntity addNewContact(@RequestBody String newContactData,
                                         @RequestHeader HttpHeaders headers) throws Exception {
-        if (sessionService.tokenExists(headers)) {
+        if (userIsAuthenticated(headers)) {
+
             JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
             Long userId = sessionService.obtainUserIdFromToken(headers);
             Contact newContact = contactService.createNewContact(newContactJson, userId);
+
+
+
+
             if (contactService.newContactIsValid(newContact)) {
                 contactService.saveNewContact(newContact);
                 return new CreatedResponse().generateResponse();
@@ -56,28 +58,30 @@ public class ContactController {
     }
 
     @GetMapping("/allcontacts")
-    public String listAllContact(@RequestHeader HttpHeaders headers) {
-        if (sessionService.tokenExists(headers)) {
-            return obtainContactList(() -> contactService.obtainAllContacts());
+    public ResponseEntity listAllContact(@RequestHeader HttpHeaders headers) {
+        if (userIsAuthenticated(headers)) {
+            String contacts = obtainContactList(() -> contactService.obtainAllContacts());
+            return  new ListedItemsResponse(contacts).generateResponse();
         } else {
-            return "401";
+            return new UnauthorizedResponse().generateResponse();
         }
     }
 
     @GetMapping("/mycontacts")
-    public String listMyContact(@RequestHeader HttpHeaders headers) {
-        if (sessionService.tokenExists(headers)) {
-            return obtainContactList(() ->
+    public ResponseEntity listMyContacts(@RequestHeader HttpHeaders headers) {
+        if (userIsAuthenticated(headers)) {
+            String contacts = obtainContactList(() ->
                     contactService.obtainMyContacts(sessionService.obtainUserIdFromToken(headers)));
+            return new ListedItemsResponse(contacts).generateResponse();
         } else {
-            return "401";
+            return new UnauthorizedResponse().generateResponse();
         }
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
                                         @RequestHeader HttpHeaders headers) {
-        if (sessionService.tokenExists(headers)) {
+        if (userIsAuthenticated(headers)) {
             Long userId = sessionService.obtainUserIdFromToken(headers);
             if (contactService.contactBelongsToUser(contactId, userId)) {
                 contactService.deleteContact(contactId);
@@ -95,7 +99,7 @@ public class ContactController {
     public ResponseEntity editContact(@PathVariable("id") Long contactId,
                                       @RequestBody String newContactData,
                                       @RequestHeader HttpHeaders headers) throws Exception {
-        if (sessionService.tokenExists(headers)) {
+        if (userIsAuthenticated(headers)) {
             Long userId = sessionService.obtainUserIdFromToken(headers);
             JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
             Contact editedContact = contactService.createNewContact(newContactJson, userId);
@@ -126,11 +130,15 @@ public class ContactController {
         }
     }
 
+    private boolean userIsAuthenticated(@RequestHeader HttpHeaders headers) {
+        return sessionService.tokenExists(headers);
+    }
+
     public ResponseEntity manageContacts(){
         return null;
     }
 
-    public boolean validateRequest(){
+    public boolean validateRequest(Function f){
         return true;
     }
 
