@@ -41,10 +41,6 @@ public class ContactController {
             JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
             Long userId = sessionService.obtainUserIdFromToken(headers);
             Contact newContact = contactService.createNewContact(newContactJson, userId);
-
-
-
-
             if (contactService.newContactIsValid(newContact)) {
                 contactService.saveNewContact(newContact);
                 return new CreatedResponse().generateResponse();

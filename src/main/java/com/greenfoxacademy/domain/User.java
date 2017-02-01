@@ -37,16 +37,11 @@ public class User {
     private boolean enabled;
 
     @Transient
-    private String passwordConfirmation;
+    private String password_confirmation;
 
     public User() {
         this.userRole = "USER";
         this.enabled = true;
     }
 
-//    public User(String userName, String userPassword) {
-//        this();
-//        this.userName = userName;
-//        this.userPassword = userPassword;
-//    }
 }

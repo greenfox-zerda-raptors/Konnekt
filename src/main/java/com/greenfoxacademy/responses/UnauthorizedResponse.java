@@ -1,12 +1,9 @@
 package com.greenfoxacademy.responses;
 
-import com.sun.deploy.net.HttpResponse;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 
-import java.net.URI;
+import java.util.HashMap;
 
 /**
  * Created by Lenovo on 2/1/2017.

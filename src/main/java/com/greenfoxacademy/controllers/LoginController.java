@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.responses.SuccessfulLoginResponse;
+import com.greenfoxacademy.responses.SuccessfulLoginAndRegistrationResponse;
 import com.greenfoxacademy.responses.UnauthorizedResponse;
-import com.greenfoxacademy.service.HttpServletService;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +38,9 @@ public class LoginController {
             User currentUser = userService.findUserByEmail(loginJson.get("email").textValue());
             Session currentSession = sessionService.createSession(currentUser);
             sessionService.saveSession(currentSession);
-            return new SuccessfulLoginResponse(currentSession.getToken()).generateResponse();
+            SuccessfulLoginAndRegistrationResponse success =
+                    new SuccessfulLoginAndRegistrationResponse(currentSession.getToken(), currentUser);
+            return success.generateResponse();
         } else {
             return new UnauthorizedResponse().generateResponse();
         }

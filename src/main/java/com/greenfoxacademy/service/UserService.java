@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,18 +14,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-//    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-//        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(User user) {
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setPassword("12345");
         userRepository.save(user);
     }
 
@@ -58,7 +53,7 @@ public class UserService {
     }
 
     private boolean passwordsMatch(User newUser) {
-        return newUser.getPasswordConfirmation().equals(newUser.getPassword());
+        return newUser.getPassword_confirmation().equals(newUser.getPassword());
     }
 
     public boolean userLoginIsValid(JsonNode loginJson) {
