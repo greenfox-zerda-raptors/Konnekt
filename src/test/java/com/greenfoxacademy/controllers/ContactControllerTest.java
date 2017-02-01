@@ -50,7 +50,6 @@ public class ContactControllerTest {
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
         contactService.emptyRepositoryBeforeTest();
-
     }
 
     @Test
@@ -70,7 +69,6 @@ public class ContactControllerTest {
                 .andExpect(status().isCreated());
         assertTrue(contactService.findContactByName("Jane Doe") != null);
     }
-
 
     private String createTestJson(TestContact testContact) {
         Gson testContactConverter = new Gson();
