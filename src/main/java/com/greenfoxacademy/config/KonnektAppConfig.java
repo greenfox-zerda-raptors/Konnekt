@@ -75,7 +75,7 @@ public class KonnektAppConfig {
     @Bean(name = "securityDataSource")
     @Profile(Profiles.TEST)
     public DataSource getTestDataSource() throws URISyntaxException {
-        return createPostgresDataSource("dev");
+        return createPostgresDataSource("prod");
     }
 
 

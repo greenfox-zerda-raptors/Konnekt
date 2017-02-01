@@ -70,6 +70,13 @@ public class ContactControllerTest {
         assertTrue(contactService.findContactByName("Jane Doe") != null);
     }
 
+//    @Test
+//    public void updateContact() {
+//        TestContact testContact = new TestContact("Jane Doe", "FOOBAR");
+//        String testJson = createTestJson(testContact);
+//        mockMvc.perform(put("/edit"))
+//    }
+
     private String createTestJson(TestContact testContact) {
         Gson testContactConverter = new Gson();
         return testContactConverter.toJson(testContact);
