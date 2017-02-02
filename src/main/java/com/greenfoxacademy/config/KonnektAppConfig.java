@@ -51,7 +51,7 @@ public class KonnektAppConfig {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
         flyway.setSchemas("konnekt_test");
-        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration/test");
+        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/testmigration");
         flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
         return flyway;
     }
