@@ -11,7 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@RestController
+@BaseController
 @RequestMapping("/error")
 public class ExceptionHandlingController implements ErrorController {
 
