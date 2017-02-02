@@ -39,5 +39,6 @@ public class User {
     public User() {
         this.userRole = "USER";
         this.enabled = true;
+        this.username= "";
     }
 }
