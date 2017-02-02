@@ -1,18 +1,17 @@
 package com.greenfoxacademy.controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.service.HttpServletService;
+import com.greenfoxacademy.responses.RegistrationErrorResponse;
+import com.greenfoxacademy.responses.UserResponse;
+import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 
@@ -22,36 +21,40 @@ import java.io.IOException;
 @BaseController
 public class RegistrationController {
     private final UserService userService;
-    private HttpServletService servletService;
+    private SessionService sessionService;
 
     @Autowired
-    public RegistrationController(UserService userService, HttpServletService servletService) {
+    public RegistrationController(UserService userService, SessionService sessionService) {
         this.userService = userService;
-        this.servletService = servletService;
-    }
-
-    @GetMapping("/register")
-    @ResponseBody
-    public String registerGet() {
-        return "";
+        this.sessionService = sessionService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity registerPost(@RequestBody String regFormData) throws IOException {
-        JsonNode registrationJson = new ObjectMapper().readValue(regFormData, JsonNode.class);
-        User newUser = userService.createUser(registrationJson);
-        String passwordConfirmation = registrationJson.get("passwordConfirmation").textValue();
-        if (registrationIsValid(newUser, passwordConfirmation)) {
-            userService.save(newUser);
-            return servletService.createResponseEntity("user created", "success", HttpStatus.CREATED);
-        } else {
-            return servletService.createResponseEntity("cannot register user", "error", HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity register(@RequestBody AuthRequest request) throws IOException {
+        return (userService.registrationIsValid(request)) ?
+                generateSuccessfulRegistration(request):
+                generateRegistrationError(request);
     }
 
-    private boolean registrationIsValid(User newUser, String passwordConfirmation) {
-        return !userService.userExists(newUser.getUserName())
-                && passwordConfirmation.equals(newUser.getUserPassword());
+    private ResponseEntity generateSuccessfulRegistration(AuthRequest request) {
+        User newUser = userService.createUser(request);
+        Session currentSession = sessionService.createSession(newUser);
+        return new ResponseEntity<>(new UserResponse(newUser.getId()),
+                                    sessionService.generateHeadersWithToken(currentSession.getToken()),
+                                    HttpStatus.CREATED);
+    }
+
+    private ResponseEntity generateRegistrationError(AuthRequest request) {
+        return new ResponseEntity<>(createErrorResponse(request),
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.FORBIDDEN);
+    }
+
+    private RegistrationErrorResponse createErrorResponse(AuthRequest request) {
+        RegistrationErrorResponse errorResponse =
+                new RegistrationErrorResponse(userService);
+        errorResponse.addErrorMessages(request);
+        return errorResponse;
     }
 
 }

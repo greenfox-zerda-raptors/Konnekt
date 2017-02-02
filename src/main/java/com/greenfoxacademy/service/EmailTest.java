@@ -7,22 +7,23 @@ import java.io.IOException;
 
 @Service
 public class EmailTest {
-    private Email from = new Email("app62245770@heroku.com");
+    private Email from = new Email("konnekt@heroku.com");
 
 
-    public void sendTest(String toAddress) {
+    public String sendTestEmailAndAlsoReturnTheResponsePls(String toAddress) {
         String subject = "Hello World from the SendGrid Java Library!";
         Email to = new Email(toAddress);
-        Content content = new Content("text/plain", "Hello, Email!");
+        Content content = new Content("text/plain", "'sup");
         Mail mail = new Mail(from, subject, to, content);
 
         SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
         Request request = new Request();
+        Response response = null;
         try {
             request.method = Method.POST;
             request.endpoint = "mail/send";
             request.body = mail.build();
-            Response response = sg.api(request);
+            response = sg.api(request);
             System.out.println(response.statusCode);
             System.out.println(response.body);
             System.out.println(response.headers);
@@ -30,5 +31,6 @@ public class EmailTest {
             System.out.println("juj");
             ex.printStackTrace();
         }
+        return response.statusCode + "\r\n" + response.body + "\r\n" + response.headers;
     }
 }

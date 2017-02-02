@@ -3,6 +3,7 @@ package com.greenfoxacademy.controllers;
 import com.greenfoxacademy.service.EmailTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @BaseController
 public class EmailTestController {
 
-    EmailTest emailTest;
+    private EmailTest emailTest;
 
 
     @Autowired
@@ -24,9 +25,7 @@ public class EmailTestController {
 
     @GetMapping("/testmail")
     @ResponseBody
-    public String sendTestMail() {
-        emailTest.sendTest("posa.marci@gmail.com");
-
-        return "elvileg elment";
+    public String sendTestMail(@RequestParam String to) {
+        return emailTest.sendTestEmailAndAlsoReturnTheResponsePls(to);
     }
 }
