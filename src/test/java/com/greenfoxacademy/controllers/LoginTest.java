@@ -1,80 +1,68 @@
 package com.greenfoxacademy.controllers;
 
+import com.google.gson.Gson;
+import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootContextLoader;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
-import javax.servlet.Filter;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+
+/**
+ * Created by Jade Team on 2017.01.30..
+ */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringApplicationConfiguration(classes = KonnektApplication.class)
 @WebAppConfiguration
+@ContextConfiguration(classes = KonnektApplication.class, loader = SpringBootContextLoader.class)
 @ActiveProfiles(Profiles.TEST)
 public class LoginTest {
+
+    private MockMvc mockMvc;
 
     @Autowired
     private WebApplicationContext context;
 
-    @Autowired
-    private Filter springSecurityFilterChain;
-
-    private MockMvc mockMvc;
-
     @Before
-    public void setup() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .addFilters(springSecurityFilterChain)
-                .apply(springSecurity())
-                .build();
+    public void setup() throws Exception {
+        this.mockMvc = webAppContextSetup(context).build();
     }
 
     @Test
-    public void thatLoginWithCorrectCredentialsWorks() throws Exception {
+    public void testLoginWithValidCreditentials() throws Exception {
+        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
+        String validTestJson = createTestJson(validTestLogin);
         mockMvc.perform(post("/login").with(csrf())
-                .param("username", "user")
-                .param("password", "password")
-        ).andExpect(status().isFound()).andExpect(authenticated());
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .andExpect(status().isCreated());
     }
 
     @Test
-    public void thatLoginWithInCorrectCredentialsWorks() throws Exception {
+    public void testLoginWithBadPassword() throws Exception {
+        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "12345");
+        String validTestJson = createTestJson(validTestLogin);
         mockMvc.perform(post("/login").with(csrf())
-                .param("username", "user")
-                .param("password", "pass3243word")
-        ).andExpect(status().isFound()).andExpect(unauthenticated());
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .andExpect(status().isUnauthorized());
     }
 
-    @Configuration
-    @EnableWebMvcSecurity
-    @EnableWebMvc
-    static class Config extends WebSecurityConfigurerAdapter {
-        @Autowired
-        public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-            auth
-                    .inMemoryAuthentication()
-                    .withUser("user").password("password").roles("USER");
-        }
+    private String createTestJson(TestLogin testLogin) {
+        Gson testContactConverter = new Gson();
+        return testContactConverter.toJson(testLogin);
     }
 }

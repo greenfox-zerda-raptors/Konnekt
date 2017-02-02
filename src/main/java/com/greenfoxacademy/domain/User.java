@@ -26,19 +26,18 @@ public class User {
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)
     private Long id;
-    private String userName;
-    private String userPassword;
+    @Column(name = "user_name")
+    private String username;
+    @Column(name = "user_password")
+    private String password;
     private String userRole;
+    private String email;
+    private String firstName;
+    private String lastName;
     private boolean enabled;
 
     public User() {
         this.userRole = "USER";
         this.enabled = true;
-    }
-
-    public User(String userName, String userPassword) {
-        this();
-        this.userName = userName;
-        this.userPassword = userPassword;
     }
 }
