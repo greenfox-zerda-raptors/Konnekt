@@ -21,8 +21,8 @@ import java.io.IOException;
 @BaseController
 public class LoginController {
 
-    private final UserService userService;
-    private final SessionService sessionService;
+    private UserService userService;
+    private SessionService sessionService;
 
     @Autowired
     public LoginController(UserService userService,

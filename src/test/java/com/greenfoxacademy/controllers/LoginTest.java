@@ -3,6 +3,8 @@ package com.greenfoxacademy.controllers;
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
+import com.greenfoxacademy.service.SessionService;
+import com.greenfoxacademy.service.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +36,12 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class LoginTest {
 
     private MockMvc mockMvc;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private SessionService sessionService;
 
     @Autowired
     private WebApplicationContext context;
