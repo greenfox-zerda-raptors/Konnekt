@@ -21,5 +21,9 @@ public abstract class ErrorResponse {
         this.userService = userService;
     }
 
+    public ErrorResponse (Error error) {
+        this.errors.add(error);
+    }
+
     public abstract void addErrorMessages(AuthRequest request);
 }

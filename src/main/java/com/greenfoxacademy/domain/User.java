@@ -1,6 +1,7 @@
 package com.greenfoxacademy.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -14,7 +15,8 @@ import javax.persistence.*;
 @Entity
 @Data
 @Table(schema = "konnekt", name = "user")
-@JsonIgnoreProperties({"userPassword", "id", "userRole", "enabled"})
+@JsonSerialize
+@JsonIgnoreProperties({"password", "userRole", "enabled", "firstName", "lastName"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
