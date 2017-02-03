@@ -34,6 +34,12 @@ public class KonnektAppConfig {
         return createPostgresDataSource("prod");
     }
 
+    @Bean(name = "securityDataSource")
+    @Profile(Profiles.TEST)
+    public DataSource getTestDataSource() throws URISyntaxException {
+        return createPostgresDataSource("test");
+    }
+
     @Bean(initMethod = "migrate")
     @Profile({Profiles.PROD, Profiles.DEV})
     Flyway flyway() throws URISyntaxException {
@@ -51,31 +57,40 @@ public class KonnektAppConfig {
         Flyway flyway = new Flyway();
         flyway.setBaselineOnMigrate(true);
         flyway.setSchemas("konnekt_test");
-        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/testmigration");
+        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
         flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
         return flyway;
     }
 
     private DriverManagerDataSource createPostgresDataSource(String profile) throws URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
-        String username = dbUri.getUserInfo().split(":")[0];
+        String[] userPass = dbUri.getUserInfo().split(":");
         String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setUsername(userPass[0]);
         dataSource.setDriverClassName("org.postgresql.Driver");
-        if (profile.equals("prod")) {
-            String password = dbUri.getUserInfo().split(":")[1];
-            dbUrl += "?sslmode=require";
-            dataSource.setPassword(password);
+        switch (profile) {
+            case "dev":
+                dataSource.setSchema("konnekt");
+                break;
+            case "prod":
+                String password = userPass[1];
+                dbUrl += "?sslmode=require";
+                dataSource.setPassword(password);
+                dataSource.setSchema("konnekt");
+                break;
+            case "test":
+                if (userPass.length == 2) {
+                    String pw = userPass[1];
+                    dataSource.setPassword(pw);
+                }
+                dataSource.setSchema("konnekt_test");
+                dbUrl += (dbUri.getHost().contains("amazon")) ? "?sslmode=require" : "";
+
+
         }
         dataSource.setUrl(dbUrl);
-        dataSource.setUsername(username);
         return dataSource;
-    }
-
-    @Bean(name = "securityDataSource")
-    @Profile(Profiles.TEST)
-    public DataSource getTestDataSource() throws URISyntaxException {
-        return createPostgresDataSource("prod");
     }
 
 

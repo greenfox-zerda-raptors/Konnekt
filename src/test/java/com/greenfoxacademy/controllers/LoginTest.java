@@ -52,6 +52,16 @@ public class LoginTest {
     }
 
     @Test
+    public void testLoginWithValidCreditentials() throws Exception {
+        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
+        String validTestJson = createTestJson(validTestLogin);
+        mockMvc.perform(post("/login").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .andExpect(status().isCreated());
+    }
+
+
+    @Test
     public void testLoginWithBadPassword() throws Exception {
         TestLogin validTestLogin = new TestLogin("admin@admin.hu", "12345");
         String validTestJson = createTestJson(validTestLogin);

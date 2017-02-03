@@ -1,6 +1,6 @@
-ALTER TABLE konnekt.user
+ALTER TABLE "user"
   ADD enabled BOOLEAN;
 
-UPDATE konnekt.user
+UPDATE "user"
 SET enabled = TRUE
 WHERE id = 1;
