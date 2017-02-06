@@ -21,6 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -68,6 +69,25 @@ public class ContactControllerTest {
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
                 .andExpect(status().isCreated());
         assertTrue(contactService.findContactByName("Jane Doe") != null);
+    }
+
+    @Test
+    public void changeContactName() throws Exception {
+        TestContact testContactToUpdate = new TestContact("Jane Doe", "FOOBAR");
+        String testContactToUpdateJson = createTestJson(testContactToUpdate);
+        mockMvc.perform(post("/add").contentType(MediaType.APPLICATION_JSON).content(testContactToUpdateJson));
+
+        TestContact editedTestContact = new TestContact("John Doe", "FOOBAR");
+        String editedTestContactJson = createTestJson(editedTestContact);
+        System.out.println(editedTestContact);
+        mockMvc.perform((put("/edit/1"))
+                .contentType(MediaType.APPLICATION_JSON).content(editedTestContactJson))
+                .andExpect(status().isOk());
+        //.andExpect(jsonPath("$.id").value(testContactToUpdate.getId()))
+        //.andExpect(jsonPath("$.contactName"),is("John Doe"));
+        assertTrue(contactService.findContactByName("Jane Doe") != null);
+
+
     }
 
 
