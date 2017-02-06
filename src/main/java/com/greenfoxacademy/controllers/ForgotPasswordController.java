@@ -12,18 +12,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 
 @BaseController
-public class EmailTestController {
+public class ForgotPasswordController {
 
     private EmailTest emailTest;
 
 
     @Autowired
-    public EmailTestController(EmailTest emailTest) {
+    public ForgotPasswordController(EmailTest emailTest) {
         this.emailTest = emailTest;
     }
 
 
-    @GetMapping("/testmail")
+    @GetMapping("/forgotpassword")
     @ResponseBody
     public String sendTestMail(@RequestParam String to) {
         return emailTest.sendTestEmailAndAlsoReturnTheResponsePls(to);
