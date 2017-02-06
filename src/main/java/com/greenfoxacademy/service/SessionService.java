@@ -39,28 +39,34 @@ public class SessionService {
         sessionRepository.save(currentSession);
     }
 
-    public boolean tokenExists(HttpHeaders headers) {
-        return sessionRepository.findOne(headers.get("token").get(0)) != null;
+    public boolean tokenExists(String token) {
+        return sessionRepository.findOne(token) != null;
     }
 
-    public Long obtainUserIdFromToken(HttpHeaders headers) {
+    public Long obtainUserIdFromHeaderToken(HttpHeaders headers) {
         return sessionRepository.findOne(headers
-                .get("token")
-                .get(0))
+                .getFirst("session_token"))
                 .getUser()
                 .getId();
     }
 
-    public HttpHeaders generateHeaders(){
+    public HttpHeaders generateHeaders() {
         HttpHeaders responseHeaders = new HttpHeaders();
         URI location = URI.create("https://raptor-konnekt.herokuapp.com");
         responseHeaders.setLocation(location);
         return responseHeaders;
     }
 
-    public HttpHeaders generateHeadersWithToken(String token){
+    public HttpHeaders generateHeadersWithToken(String token) {
         HttpHeaders responseHeadersWithToken = generateHeaders();
         responseHeadersWithToken.set("session_token", token);
         return responseHeadersWithToken;
+    }
+
+    public boolean sessionIsValid(HttpHeaders headers) {
+        String token = headers.getFirst("session_token");
+        return  token != null &&
+                tokenExists(token);
+
     }
 }

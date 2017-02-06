@@ -1,5 +1,6 @@
 package com.greenfoxacademy.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "`contact`")
 @Data
+@JsonSerialize
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
@@ -27,6 +29,8 @@ public class Contact {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
-    private String contactName;
-    private String contactDescription;
+    @Column(name = "contact_name")
+    private String name;
+    @Column(name = "contact_description")
+    private String description;
 }

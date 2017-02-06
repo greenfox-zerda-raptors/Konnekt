@@ -1,93 +1,153 @@
 package com.greenfoxacademy.controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.greenfoxacademy.domain.Contact;
+import com.greenfoxacademy.requests.ContactRequest;
+import com.greenfoxacademy.responses.BadRequestErrorResponse;
+import com.greenfoxacademy.responses.Error;
+import com.greenfoxacademy.responses.MultipleContactsResponse;
+import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
 import com.greenfoxacademy.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.greenfoxacademy.domain.ContactsDisplay;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Created by Jade Team on 2017.01.24..
+ * Created by Jade Team on 2017.01.24.. Controller responsible for CRUD operations
  */
 
 @BaseController
 public class ContactController {
 
     private ContactService contactService;
-    private HttpServletService servletService;
+    private SessionService sessionService;
 
     @Autowired
-    public ContactController(ContactService contactService, HttpServletService servletService) {
+    public ContactController(ContactService contactService,
+                             SessionService sessionService) {
         this.contactService = contactService;
-        this.servletService = servletService;
+        this.sessionService = sessionService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity addNewContact(@RequestBody String newContactData) throws Exception {
-        JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
-        Contact newContact = contactService.createNewContact(newContactJson);
-        if (contactService.newContactIsValid(newContact)) {
-            contactService.saveNewContact(newContact);
-            return servletService.createResponseEntity("contact created", "success", HttpStatus.CREATED);
-        } else {
-            return servletService.createResponseEntity("cannot create contact", "error", HttpStatus.BAD_REQUEST);
-        }
+    @PostMapping("/contacts")
+    public ResponseEntity addNewContact(@RequestBody ContactRequest contactRequest,
+                                        @RequestHeader HttpHeaders headers) throws Exception {
+        return (authIsSuccessful(headers)) ?
+                showAddingResults(contactRequest) :
+                respondWithNotAuthenticated();
     }
 
-    @GetMapping("/allcontacts")
-    public String listAllContact() {
-        return obtainContactList(() -> contactService.obtainAllContacts());
+    private ResponseEntity showAddingResults(ContactRequest contactRequest){
+        return (contactService.contactRequestIsValid(contactRequest)) ?
+                showAddingOKResults(contactRequest) :
+                respondWithBadRequest();
     }
 
-    @GetMapping("/mycontacts")
-    public String listMyContact() {
-        return obtainContactList(() -> contactService.obtainMyContacts());
+    private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
+        Contact newContact = contactService.createContact(contactRequest, null);
+        contactService.saveNewContact(newContact);
+        return new ResponseEntity<>(newContact,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity deleteContact(@PathVariable Long id) {
-        if (contactService.contactBelongsToUser(id)) {
-            contactService.deleteContact(id);
-            return servletService.createResponseEntity("contact deleted", "success", HttpStatus.I_AM_A_TEAPOT);
-        } else {
-            return servletService.createResponseEntity("cannot delete contact", "error", HttpStatus.BAD_REQUEST);
-        }
+    @GetMapping("/contacts")
+    public ResponseEntity listAllContacts(@RequestHeader HttpHeaders headers) {
+        return (authIsSuccessful(headers)) ?
+                showContacts() :
+                respondWithNotAuthenticated();
     }
 
-    @PutMapping("/edit/{id}")
-    public ResponseEntity editContact(@PathVariable() Long id, @RequestBody String newContactData) throws Exception {
-        JsonNode newContactJson = new ObjectMapper().readValue(newContactData, JsonNode.class);
-        Contact editedContact = contactService.createNewContact(newContactJson);
-        if (contactService.contactBelongsToUser(id) && contactService.newContactIsValid(editedContact)) {
-            contactService.editContact(id, newContactJson);
-            return servletService.createResponseEntity("contact edited", "success", HttpStatus.I_AM_A_TEAPOT);
-        } else {
-            return servletService.createResponseEntity("cannot edit contact", "error", HttpStatus.BAD_REQUEST);
-        }
+    private ResponseEntity showContacts() {
+        MultipleContactsResponse multipleContactsResponse =
+                new MultipleContactsResponse(contactService.obtainAllContacts());
+        return new ResponseEntity<>(multipleContactsResponse,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.OK);
     }
 
-    private String obtainContactList(
-            ContactCollector contactCollector) {
-        List<Object[]> allContacts =
-                contactCollector.collectContacts();
-        ArrayList<ContactsDisplay> contactsDisplays = new ArrayList<>();
-        for (Object[] contactArray : allContacts) {
-            contactsDisplays.add(new ContactsDisplay(contactArray[0], contactArray[1], contactArray[2], contactArray[3]));
-        }
-        if (allContacts.size() != 0) {
-            Gson contactsGson = new Gson();
-            return contactsGson.toJson(contactsDisplays);
-        } else {
-            return "nothing to show";
-        }
+    @DeleteMapping("/contact/{id}")
+    public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
+                                        @RequestHeader HttpHeaders headers) {
+        return (authIsSuccessful(headers)) ?
+                showDeletingResults(contactId, headers) :
+                respondWithNotAuthenticated();
+    }
+
+    private ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers) {
+        Long userId = obtainUserId(headers);
+        return (contactService.contactBelongsToUser(contactId, userId)) ?
+            showDeletingOKResults(contactId) :
+              respondWithBadRequest();
+    }
+
+    private ResponseEntity showDeletingOKResults(Long contactId){
+        Contact contactToDelete = contactService.findContactById(contactId);
+        contactService.deleteContact(contactId);
+        return new ResponseEntity<>(contactToDelete,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.OK);
+    }
+
+    @PutMapping("/contact/{id}")
+    public ResponseEntity editContact(@PathVariable("id") Long contactId,
+                                      @RequestBody ContactRequest contactRequest,
+                                      @RequestHeader HttpHeaders headers) throws Exception {
+        return (authIsSuccessful(headers)) ?
+                showEditingResults(contactId, headers, contactRequest) :
+                respondWithNotAuthenticated();
+    }
+
+    private ResponseEntity showEditingResults(Long contactId,
+                                              HttpHeaders headers,
+                                              ContactRequest contactRequest) {
+        Long userId = obtainUserId(headers);
+        return (editingParametersAreValid(contactId, userId, contactRequest)) ?
+                showEditingOKResults(contactId, contactRequest) :
+                respondWithBadRequest();
+    }
+
+    private ResponseEntity showEditingOKResults(Long contactId,
+                                                ContactRequest contactRequest) {
+        Contact updatedContact = contactService.createContact(contactRequest, contactId);
+        contactService.saveNewContact(updatedContact);
+        return new ResponseEntity<>(updatedContact,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.OK);
+    }
+
+    private boolean editingParametersAreValid(Long contactId,
+                                              Long userId,
+                                              ContactRequest contactRequest) {
+        return contactService.contactBelongsToUser(contactId, userId) &&
+                contactService.contactRequestIsValid(contactRequest);
+    }
+
+    private boolean authIsSuccessful(HttpHeaders headers) {
+        return sessionService.sessionIsValid(headers);
+    }
+
+    private Long obtainUserId(HttpHeaders headers) {
+        return sessionService.obtainUserIdFromHeaderToken(headers);
+    }
+
+    private ResponseEntity respondWithNotAuthenticated() {
+        NotAuthenticatedErrorResponse notAuthenticatedErrorResponse =
+                new NotAuthenticatedErrorResponse(
+                        new Error("Authentication error", "Not authenticated"));
+        return new ResponseEntity<>(notAuthenticatedErrorResponse,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.UNAUTHORIZED);
+    }
+
+    private ResponseEntity respondWithBadRequest() {
+        BadRequestErrorResponse badRequestErrorResponse =
+                new BadRequestErrorResponse(
+                        new Error("Data error", "Data did not match required format."));
+        return new ResponseEntity<>(badRequestErrorResponse,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.BAD_REQUEST);
     }
 
 }

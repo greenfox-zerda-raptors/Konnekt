@@ -48,6 +48,7 @@ public class KonnektAppConfig {
         flyway.setSchemas("konnekt");
         flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
         flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
+        flyway.repair();
         return flyway;
     }
 
@@ -59,6 +60,7 @@ public class KonnektAppConfig {
         flyway.setSchemas("konnekt_test");
         flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/migration");
         flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
+        flyway.repair();
         return flyway;
     }
 
