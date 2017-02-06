@@ -3,8 +3,13 @@ package com.greenfoxacademy.controllers;
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
+import com.greenfoxacademy.domain.Session;
+import com.greenfoxacademy.repository.ContactRepository;
+import com.greenfoxacademy.repository.SessionRepository;
+import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.service.ContactService;
-import com.greenfoxacademy.service.HttpServletService;
+import com.greenfoxacademy.service.SessionService;
+import com.greenfoxacademy.service.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,8 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.junit.Assert.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -43,19 +47,32 @@ public class ContactControllerTest {
 
     @Autowired
     private ContactService contactService;
+    @Autowired
+    private ContactRepository contactRepository;
 
     @Autowired
-    private HttpServletService servletService;
+    private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SessionService sessionService;
+    @Autowired
+    private SessionRepository sessionRepository;
+
 
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
         contactService.emptyRepositoryBeforeTest();
+        Session session = new Session("abcde", userService.findUserById(1L));
+        sessionService.saveSession(session);
     }
 
     @Test
     public void addContactWithInvalidData() throws Exception {
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
                 .contentType(MediaType.APPLICATION_JSON).content(""))
                 .andExpect(status().isBadRequest());
         assertTrue(contactService.findContactByName("Jane Doe") == null);
@@ -63,33 +80,133 @@ public class ContactControllerTest {
 
     @Test
     public void addContactWithValidData() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR");
+        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         String validTestJson = createTestJson(validTestContact);
-        mockMvc.perform(post("/add")
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
                 .andExpect(status().isCreated());
         assertTrue(contactService.findContactByName("Jane Doe") != null);
     }
 
     @Test
-    public void changeContactName() throws Exception {
-        TestContact testContactToUpdate = new TestContact("Jane Doe", "FOOBAR");
-        String testContactToUpdateJson = createTestJson(testContactToUpdate);
-        mockMvc.perform(post("/add").contentType(MediaType.APPLICATION_JSON).content(testContactToUpdateJson));
+    public void addContactWithoutToken() throws Exception {
+        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
 
-        TestContact editedTestContact = new TestContact("John Doe", "FOOBAR");
-        String editedTestContactJson = createTestJson(editedTestContact);
-        System.out.println(editedTestContact);
-        mockMvc.perform((put("/edit/1"))
-                .contentType(MediaType.APPLICATION_JSON).content(editedTestContactJson))
-                .andExpect(status().isOk());
-        //.andExpect(jsonPath("$.id").value(testContactToUpdate.getId()))
-        //.andExpect(jsonPath("$.contactName"),is("John Doe"));
-        assertTrue(contactService.findContactByName("Jane Doe") != null);
-
-
+        mockMvc.perform(post("/contacts")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    public void addContactWithAwfulToken() throws Exception {
+        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", "fghi")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void listContactsWithValidData() throws Exception {
+        mockMvc.perform(get("/contacts")
+                .header("session_token", "abcde"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void listContactsWithoutToken() throws Exception {
+        mockMvc.perform(get("/contacts"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void listContactsWithAwfulToken() throws Exception {
+        mockMvc.perform(get("/contacts")
+                .header("session_token", "awful"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void updateContactWithValidData() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+        Long contactId = contactService.findContactByName("John Doe").getId();
+
+        TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+        String updateJson = createTestJson(updatedTestContact);
+        mockMvc.perform(put("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(updateJson))
+                .andExpect(status().isOk());
+
+        assertTrue(contactService.findContactByName("Jane Doe") != null);
+    }
+
+    @Test
+    public void updateContactWithAwfulToken() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+
+        Long contactId = contactService.findContactByName("John Doe").getId();
+
+        TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+        String updateJson = createTestJson(updatedTestContact);
+        mockMvc.perform(put("/contact/{id}", contactId)
+                .contentType(MediaType.APPLICATION_JSON).content(updateJson))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void updateContactWithoutToken() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+
+        Long contactId = contactService.findContactByName("John Doe").getId();
+
+        TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+        String updateJson = createTestJson(updatedTestContact);
+        mockMvc.perform(put("/contact/{id}", contactId)
+                .header("session_token", "gfhhf")
+                .contentType(MediaType.APPLICATION_JSON).content(updateJson))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void deleteContact() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+        Long contactId = contactService.findContactByName("John Doe").getId();
+        mockMvc.perform(delete("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
+
+        assertTrue(contactService.findContactByName("John Doe") == null);
+    }
 
     private String createTestJson(TestContact testContact) {
         Gson testContactConverter = new Gson();

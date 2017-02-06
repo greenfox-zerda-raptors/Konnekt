@@ -64,17 +64,6 @@ public class KonnektAppConfig {
         return flyway;
     }
 
-    @Bean(initMethod = "migrate", name = "flyway")
-    @Profile(Profiles.TEST)
-    Flyway flywayTest() throws URISyntaxException {
-        Flyway flyway = new Flyway();
-        flyway.setBaselineOnMigrate(true);
-        flyway.setSchemas("konnekt_test");
-        flyway.setLocations("filesystem:src/main/java/com/greenfoxacademy/db/testmigration");
-        flyway.setDataSource((DataSource) appContext.getBean("securityDataSource"));
-        return flyway;
-    }
-
     private DriverManagerDataSource createPostgresDataSource(String profile) throws URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
         String[] userPass = dbUri.getUserInfo().split(":");
@@ -106,16 +95,5 @@ public class KonnektAppConfig {
         return dataSource;
     }
 
-<<<<<<< HEAD
-    @Bean(name = "securityDataSource")
-    @Profile(Profiles.TEST)
-    public DataSource getTestDataSource() throws URISyntaxException {
-        return createPostgresDataSource("prod");
-    }
-
 
 }
-=======
-
-}
->>>>>>> master

@@ -7,11 +7,13 @@ import lombok.Data;
  */
 @Data
 public class TestContact {
-    private String contactName;
-    private String contactDescription;
+    private String contact_name;
+    private String contact_description;
+    private Long user_id;
 
-    public TestContact(String contactName, String contactDescription) {
-        this.contactName = contactName;
-        this.contactDescription = contactDescription;
+    public TestContact(String contact_name, String contact_description, Long user_id) {
+        this.contact_name = contact_name;
+        this.contact_description = contact_description;
+        this.user_id = user_id;
     }
 }
