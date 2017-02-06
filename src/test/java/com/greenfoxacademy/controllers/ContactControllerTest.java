@@ -101,13 +101,13 @@ public class ContactControllerTest {
     }
 
     @Test
-    public void addContactWithAwfulToken() throws Exception {
+    public void addContactWithWrongToken() throws Exception {
         TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         String validTestJson = createTestJson(validTestContact);
 
         mockMvc.perform(post("/contacts")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
-                .header("session_token", "fghi")
+                .header("session_token", "wrong")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
                 .andExpect(status().isUnauthorized());
     }
@@ -126,9 +126,9 @@ public class ContactControllerTest {
     }
 
     @Test
-    public void listContactsWithAwfulToken() throws Exception {
+    public void listContactsWithWrongToken() throws Exception {
         mockMvc.perform(get("/contacts")
-                .header("session_token", "awful"))
+                .header("session_token", "wrong"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -154,7 +154,7 @@ public class ContactControllerTest {
     }
 
     @Test
-    public void updateContactWithAwfulToken() throws Exception {
+    public void updateContactWithoutToken() throws Exception {
         TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
         String validTestJson = createTestJson(validTestContact);
 
@@ -172,7 +172,7 @@ public class ContactControllerTest {
     }
 
     @Test
-    public void updateContactWithoutToken() throws Exception {
+    public void updateContactWithWrongToken() throws Exception {
         TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
         String validTestJson = createTestJson(validTestContact);
 
@@ -185,7 +185,7 @@ public class ContactControllerTest {
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         String updateJson = createTestJson(updatedTestContact);
         mockMvc.perform(put("/contact/{id}", contactId)
-                .header("session_token", "gfhhf")
+                .header("session_token", "wrong")
                 .contentType(MediaType.APPLICATION_JSON).content(updateJson))
                 .andExpect(status().isUnauthorized());
     }
@@ -206,6 +206,38 @@ public class ContactControllerTest {
                 .andExpect(status().isOk());
 
         assertTrue(contactService.findContactByName("John Doe") == null);
+    }
+
+    @Test
+    public void deleteContactWithWrongToken() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+        Long contactId = contactService.findContactByName("John Doe").getId();
+        mockMvc.perform(delete("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", "wrong")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void deleteContactWithoutToken() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+        Long contactId = contactService.findContactByName("John Doe").getId();
+        mockMvc.perform(delete("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+
     }
 
     private String createTestJson(TestContact testContact) {
