@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -14,15 +13,14 @@ import javax.persistence.*;
  */
 @Entity
 @Data
-@Table(schema = "konnekt", name = "user")
 @JsonSerialize
 @JsonIgnoreProperties({"password", "userRole", "enabled", "firstName", "lastName"})
+@Table(name = "`user`")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
             generator = "user_id_seq")
-    @SequenceGenerator(schema = "konnekt",
-            name = "user_id_seq",
+    @SequenceGenerator(name = "user_id_seq",
             sequenceName = "user_id_seq",
             allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false, updatable = false)
@@ -41,6 +39,6 @@ public class User {
     public User() {
         this.userRole = "USER";
         this.enabled = true;
-        this.username= "";
+        this.username = "";
     }
 }

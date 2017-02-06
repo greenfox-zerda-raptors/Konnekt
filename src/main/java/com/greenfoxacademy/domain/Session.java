@@ -10,7 +10,7 @@ import javax.persistence.*;
  * Created by BSoptei on 1/31/2017.
  */
 @Entity
-@Table(schema = "konnekt", name = "session")
+@Table(name = "`session`")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -12,15 +12,14 @@ import javax.persistence.*;
  */
 
 @Entity
-@Table(schema = "konnekt", name = "contact")
+@Table(name = "`contact`")
 @Data
 @JsonSerialize
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
             generator = "contact_id_seq")
-    @SequenceGenerator(schema = "konnekt",
-            name = "contact_id_seq",
+    @SequenceGenerator(name = "contact_id_seq",
             sequenceName = "contact_id_seq",
             allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false, updatable = false)

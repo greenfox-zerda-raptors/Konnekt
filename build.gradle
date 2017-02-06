@@ -30,6 +30,7 @@ repositories {
 
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
+    compile 'com.sendgrid:sendgrid-java:3.0.9'
     runtime('org.springframework.boot:spring-boot-devtools')
     compile('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
