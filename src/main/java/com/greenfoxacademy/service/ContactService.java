@@ -1,12 +1,10 @@
 package com.greenfoxacademy.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.requests.ContactRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +25,11 @@ public class ContactService {
     }
 
     private String obtainUserNameFromSecurity() {
-        return SecurityContextHolder.
-                getContext().
-                getAuthentication().
-                getName();
+        return "0";
+//                SecurityContextHolder.
+//                getContext().
+//                getAuthentication().
+//                getName();
     }
 
     private User obtainUserByName(String userName) {
@@ -39,23 +38,23 @@ public class ContactService {
 
     public Contact createContact(ContactRequest contactRequest, Long contactId) {
         Contact contact = (contactId == null) ?
-                            new Contact() :
-                            contactRepository.findOne(contactId);
-        contact.setName(contactRequest.getContact_name());
-        contact.setDescription(contactRequest.getContact_description());
+                new Contact() :
+                contactRepository.findOne(contactId);
+        contact.setContactName(contactRequest.getContact_name());
+        contact.setContactDescription(contactRequest.getContact_description());
         contact.setUser(userService.findUserById(contactRequest.getUser_id()));
         return contact;
     }
 
     public boolean newContactIsValid(Contact contact) {
-        return contact.getName() != null && contact.getDescription() != null;
+        return contact.getContactName() != null && contact.getContactDescription() != null;
     }
 
     public void saveNewContact(Contact newContact) {
         contactRepository.save(newContact);
     }
 
-    public Contact findContactById(Long contactId){
+    public Contact findContactById(Long contactId) {
         return contactRepository.findOne(contactId);
     }
 
@@ -68,15 +67,15 @@ public class ContactService {
     }
 
     public boolean contactBelongsToUser(Long contactId, Long userId) {
-        return  contactExists(contactId) &&
+        return contactExists(contactId) &&
                 contactIdMatchesUserId(contactId, userId);
     }
 
     private boolean contactIdMatchesUserId(Long contactId, Long userId) {
         return findContactById(contactId)
-        .getUser()
-        .getId()
-        .equals(userId);
+                .getUser()
+                .getId()
+                .equals(userId);
     }
 
     private boolean contactExists(Long contactId) {
@@ -95,5 +94,13 @@ public class ContactService {
         return contactRequest.getUser_id() != null &&
                 contactRequest.getContact_name() != null &&
                 contactRequest.getContact_description() != null;
+    }
+
+    public void emptyRepositoryBeforeTest() {
+        contactRepository.deleteAll();
+    }
+
+    public Contact findContactByName(String contactName) {
+        return contactRepository.findByContactName(contactName);
     }
 }

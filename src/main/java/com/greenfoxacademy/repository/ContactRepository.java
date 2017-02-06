@@ -1,7 +1,6 @@
 package com.greenfoxacademy.repository;
 
 import com.greenfoxacademy.domain.Contact;
-import com.greenfoxacademy.domain.ContactsDisplay;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +20,6 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
     @Query(value = "SELECT konnekt.contact.id, konnekt.user.user_name, konnekt.contact.contact_name, konnekt.contact.contact_description FROM konnekt.contact INNER JOIN konnekt.user ON konnekt.contact.user_id=konnekt.user.id WHERE konnekt.user.id = :id", nativeQuery = true)
     List<Object[]> findMyContacts(@Param("id") Long id);
 
+    //    @Query(value = "SELECT c FROM contact c WHERE contact_name = :contactName")
+    Contact findByContactName(String contactName);
 }

@@ -6,12 +6,14 @@ import com.greenfoxacademy.responses.BadRequestErrorResponse;
 import com.greenfoxacademy.responses.Error;
 import com.greenfoxacademy.responses.MultipleContactsResponse;
 import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
-import com.greenfoxacademy.service.*;
+import com.greenfoxacademy.service.ContactService;
+import com.greenfoxacademy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 /**
  * Created by Jade Team on 2017.01.24.. Controller responsible for CRUD operations
@@ -38,7 +40,7 @@ public class ContactController {
                 respondWithNotAuthenticated();
     }
 
-    private ResponseEntity showAddingResults(ContactRequest contactRequest){
+    private ResponseEntity showAddingResults(ContactRequest contactRequest) {
         return (contactService.contactRequestIsValid(contactRequest)) ?
                 showAddingOKResults(contactRequest) :
                 respondWithBadRequest();
@@ -48,8 +50,8 @@ public class ContactController {
         Contact newContact = contactService.createContact(contactRequest, null);
         contactService.saveNewContact(newContact);
         return new ResponseEntity<>(newContact,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.CREATED);
+                sessionService.generateHeaders(),
+                HttpStatus.CREATED);
     }
 
     @GetMapping("/contacts")
@@ -63,8 +65,8 @@ public class ContactController {
         MultipleContactsResponse multipleContactsResponse =
                 new MultipleContactsResponse(contactService.obtainAllContacts());
         return new ResponseEntity<>(multipleContactsResponse,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.OK);
+                sessionService.generateHeaders(),
+                HttpStatus.OK);
     }
 
     @DeleteMapping("/contact/{id}")
@@ -78,16 +80,16 @@ public class ContactController {
     private ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers) {
         Long userId = obtainUserId(headers);
         return (contactService.contactBelongsToUser(contactId, userId)) ?
-            showDeletingOKResults(contactId) :
-              respondWithBadRequest();
+                showDeletingOKResults(contactId) :
+                respondWithBadRequest();
     }
 
-    private ResponseEntity showDeletingOKResults(Long contactId){
+    private ResponseEntity showDeletingOKResults(Long contactId) {
         Contact contactToDelete = contactService.findContactById(contactId);
         contactService.deleteContact(contactId);
         return new ResponseEntity<>(contactToDelete,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.OK);
+                sessionService.generateHeaders(),
+                HttpStatus.OK);
     }
 
     @PutMapping("/contact/{id}")
@@ -113,8 +115,8 @@ public class ContactController {
         Contact updatedContact = contactService.createContact(contactRequest, contactId);
         contactService.saveNewContact(updatedContact);
         return new ResponseEntity<>(updatedContact,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.OK);
+                sessionService.generateHeaders(),
+                HttpStatus.OK);
     }
 
     private boolean editingParametersAreValid(Long contactId,
@@ -137,8 +139,8 @@ public class ContactController {
                 new NotAuthenticatedErrorResponse(
                         new Error("Authentication error", "Not authenticated"));
         return new ResponseEntity<>(notAuthenticatedErrorResponse,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.UNAUTHORIZED);
+                sessionService.generateHeaders(),
+                HttpStatus.UNAUTHORIZED);
     }
 
     private ResponseEntity respondWithBadRequest() {
@@ -146,8 +148,8 @@ public class ContactController {
                 new BadRequestErrorResponse(
                         new Error("Data error", "Data did not match required format."));
         return new ResponseEntity<>(badRequestErrorResponse,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.BAD_REQUEST);
+                sessionService.generateHeaders(),
+                HttpStatus.BAD_REQUEST);
     }
 
 }
