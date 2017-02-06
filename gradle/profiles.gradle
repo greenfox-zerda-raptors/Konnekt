@@ -1,5 +1,4 @@
 def prodProfiles = 'prod'
-def devMySQLProfiles = 'devmysql'
 def testProfiles = 'test'
 def devProfiles = 'dev'
 def propertyDrivenProfiles;

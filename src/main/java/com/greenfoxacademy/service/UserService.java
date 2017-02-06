@@ -1,10 +1,9 @@
 package com.greenfoxacademy.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,33 +13,78 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(User user) {
-        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
         userRepository.save(user);
     }
 
-    public boolean userExists(String userName) {
-        return findUserByName(userName) != null;
+    public boolean userExists(String email) {
+        return findUserByEmail(email) != null;
     }
 
-    public User findUserByName(String userName) {
-        return userRepository.findByUserName(userName);
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
-    public User createUser(JsonNode registrationJson) {
+    public User findUserByName(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    public User createUser(AuthRequest registrationRequest) {
         User newUser = new User();
-        newUser.setUserName(registrationJson.get("username").textValue());
-        newUser.setUserPassword(registrationJson.get("password").textValue());
+        newUser.setEmail(registrationRequest.getEmail());
+        newUser.setPassword(registrationRequest.getPassword());
+        save(newUser);
         return newUser;
     }
 
+    public boolean registrationIsValid(AuthRequest request) {
+        return  !oneOfRegistrationFieldsIsNull(request) &&
+                !userExists(request.getEmail()) &&
+                emailIsValid(request.getEmail()) &&
+                passwordsMatch(request);
+    }
+
+    private boolean emailIsValid(String email) {
+        return email.contains("@") && email.contains(".");
+    }
+
+    public boolean passwordsMatch(AuthRequest request) {
+        return request
+                .getPassword()
+                .equals(request.getPassword_confirmation());
+    }
+
+    public boolean userLoginIsValid(AuthRequest request) {
+        return  !emailOrPasswordIsNull(request) &&
+                userExists(request.getEmail()) &&
+                passwordAndEmailMatch(request);
+    }
+
+    public boolean passwordAndEmailMatch(AuthRequest request) {
+        return findUserByEmail(request
+                .getEmail())
+                .getPassword()
+                .equals(request.getPassword());
+    }
+
+    public User findUserById(Long userId) {
+        return userRepository.findOne(userId);
+    }
+
+    public boolean emailOrPasswordIsNull(AuthRequest request){
+        return  request.getEmail() == null ||
+                request.getPassword() == null;
+    }
+
+    public boolean oneOfRegistrationFieldsIsNull(AuthRequest request) {
+        return  emailOrPasswordIsNull(request) ||
+                request.getPassword_confirmation() == null;
+    }
 }

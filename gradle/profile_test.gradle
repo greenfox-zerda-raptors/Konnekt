@@ -31,6 +31,9 @@ repositories {
 
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-jdbc')
+<<<<<<< HEAD
 //    runtime('mysql:mysql-connector-java')
+=======
+>>>>>>> master
     compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
 }

@@ -1,9 +1,9 @@
 package com.greenfoxacademy.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,32 +13,32 @@ import javax.persistence.*;
  */
 @Entity
 @Data
-@Table(schema = "konnekt", name = "user")
-@JsonIgnoreProperties({"userPassword", "id", "userRole", "enabled"})
+@JsonSerialize
+@JsonIgnoreProperties({"password", "userRole", "enabled", "firstName", "lastName"})
+@Table(name = "`user`")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
             generator = "user_id_seq")
-    @SequenceGenerator(schema = "konnekt",
-            name = "user_id_seq",
+    @SequenceGenerator(name = "user_id_seq",
             sequenceName = "user_id_seq",
             allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)
     private Long id;
-    private String userName;
-    private String userPassword;
+    @Column(name = "user_name")
+    private String username;
+    @Column(name = "user_password")
+    private String password;
     private String userRole;
+    private String email;
+    private String firstName;
+    private String lastName;
     private boolean enabled;
 
     public User() {
         this.userRole = "USER";
         this.enabled = true;
-    }
-
-    public User(String userName, String userPassword) {
-        this();
-        this.userName = userName;
-        this.userPassword = userPassword;
+        this.username = "";
     }
 }
