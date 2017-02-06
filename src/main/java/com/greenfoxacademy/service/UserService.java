@@ -10,6 +10,15 @@ import org.springframework.stereotype.Service;
  * Created by JadeTeam on 1/19/2017. Communicates with UserRepository
  */
 
+/* TODO
+   Change password method
+   Make Forgot token repository
+   Domain model: Forgot token
+   Contactservice alapján pw check
+   Contacthoz hasonloan
+   User request (Contact request mintara)
+
+*/
 @Service
 public class UserService {
 
@@ -86,5 +95,10 @@ public class UserService {
     public boolean oneOfRegistrationFieldsIsNull(AuthRequest request) {
         return  emailOrPasswordIsNull(request) ||
                 request.getPassword_confirmation() == null;
+    }
+
+    public void changePassword(User user) {
+
+
     }
 }
