@@ -1,8 +1,8 @@
 package com.greenfoxacademy.service;
 
-import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
+import com.greenfoxacademy.requests.AuthRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +10,15 @@ import org.springframework.stereotype.Service;
  * Created by JadeTeam on 1/19/2017. Communicates with UserRepository
  */
 
+/* TODO
+   Change password method
+   Make Forgot token repository
+   Domain model: Forgot token
+   Contactservice alapján pw check
+   Contacthoz hasonloan
+   User request (Contact request mintara)
+
+*/
 @Service
 public class UserService {
 
@@ -45,7 +54,7 @@ public class UserService {
     }
 
     public boolean registrationIsValid(AuthRequest request) {
-        return  !oneOfRegistrationFieldsIsNull(request) &&
+        return !oneOfRegistrationFieldsIsNull(request) &&
                 !userExists(request.getEmail()) &&
                 emailIsValid(request.getEmail()) &&
                 passwordsMatch(request);
@@ -62,7 +71,7 @@ public class UserService {
     }
 
     public boolean userLoginIsValid(AuthRequest request) {
-        return  !emailOrPasswordIsNull(request) &&
+        return !emailOrPasswordIsNull(request) &&
                 userExists(request.getEmail()) &&
                 passwordAndEmailMatch(request);
     }
@@ -78,13 +87,23 @@ public class UserService {
         return userRepository.findOne(userId);
     }
 
-    public boolean emailOrPasswordIsNull(AuthRequest request){
-        return  request.getEmail() == null ||
+    public boolean emailOrPasswordIsNull(AuthRequest request) {
+        return request.getEmail() == null ||
                 request.getPassword() == null;
     }
 
     public boolean oneOfRegistrationFieldsIsNull(AuthRequest request) {
-        return  emailOrPasswordIsNull(request) ||
+        return emailOrPasswordIsNull(request) ||
                 request.getPassword_confirmation() == null;
+    }
+
+    public boolean changePassword(User user, AuthRequest authRequest) {
+        if ((authRequest.getPassword().equals(authRequest.getPassword_confirmation()))) {
+            user.setPassword(authRequest.getPassword());
+            userRepository.save(user);
+            return true;
+        } else {
+            return false;
+        }
     }
 }
