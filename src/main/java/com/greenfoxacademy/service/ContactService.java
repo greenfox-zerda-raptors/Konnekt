@@ -1,7 +1,7 @@
 package com.greenfoxacademy.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.greenfoxacademy.domain.Contact;
+import com.greenfoxacademy.domain.Tag;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.requests.ContactRequest;
@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Jade Team on 2017.01.24..
@@ -19,11 +20,15 @@ public class ContactService {
 
     private UserService userService;
     private ContactRepository contactRepository;
+    private TagService tagService;
 
     @Autowired
-    public ContactService(UserService userService, ContactRepository contactRepository) {
+    public ContactService(UserService userService,
+                          ContactRepository contactRepository,
+                          TagService tagService) {
         this.userService = userService;
         this.contactRepository = contactRepository;
+        this.tagService = tagService;
     }
 
     private String obtainUserNameFromSecurity() {
@@ -37,13 +42,34 @@ public class ContactService {
         return userService.findUserByName(userName);
     }
 
+    // TODO refactor this method!!!
     public Contact createContact(ContactRequest contactRequest, Long contactId) {
         Contact contact = (contactId == null) ?
-                            new Contact() :
-                            contactRepository.findOne(contactId);
+                new Contact() :
+                contactRepository.findOne(contactId);
         contact.setName(contactRequest.getContact_name());
         contact.setDescription(contactRequest.getContact_description());
         contact.setUser(userService.findUserById(contactRequest.getUser_id()));
+        contact.getTags().clear();
+
+        String rawTags = contactRequest.getTags();
+        if (rawTags != null && rawTags.length() > 0) {
+            String[] tags = rawTags.split(",");
+            for (int i = 0; i < tags.length; i++) {
+                String currentTagName = tags[i].trim().toLowerCase();
+                tags[i] = currentTagName;
+                Tag currentTag;
+                if (tagService.findByTagName(currentTagName) == null) {
+                    currentTag = new Tag(currentTagName);
+                } else {
+                    currentTag = tagService.findByTagName(currentTagName);
+                }
+                tagService.saveTag(currentTag);
+                if (!contact.getTags().contains(currentTag)) {
+                    contact.getTags().add(currentTag);
+                }
+            }
+        }
         return contact;
     }
 
@@ -55,7 +81,7 @@ public class ContactService {
         contactRepository.save(newContact);
     }
 
-    public Contact findContactById(Long contactId){
+    public Contact findContactById(Long contactId) {
         return contactRepository.findOne(contactId);
     }
 
@@ -68,23 +94,19 @@ public class ContactService {
     }
 
     public boolean contactBelongsToUser(Long contactId, Long userId) {
-        return  contactExists(contactId) &&
+        return contactExists(contactId) &&
                 contactIdMatchesUserId(contactId, userId);
     }
 
     private boolean contactIdMatchesUserId(Long contactId, Long userId) {
         return findContactById(contactId)
-        .getUser()
-        .getId()
-        .equals(userId);
+                .getUser()
+                .getId()
+                .equals(userId);
     }
 
     private boolean contactExists(Long contactId) {
         return findContactById(contactId) != null;
-    }
-
-    public List<Object[]> obtainMyContacts() {
-        return contactRepository.findMyContacts(obtainCurrentUserId());
     }
 
     private Long obtainCurrentUserId() {
@@ -95,5 +117,9 @@ public class ContactService {
         return contactRequest.getUser_id() != null &&
                 contactRequest.getContact_name() != null &&
                 contactRequest.getContact_description() != null;
+    }
+
+    public Set<Contact> findContactsByTag(Tag tag) {
+        return tag.getContacts();
     }
 }

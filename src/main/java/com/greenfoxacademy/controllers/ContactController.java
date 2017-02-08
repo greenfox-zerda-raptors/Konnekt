@@ -47,7 +47,7 @@ public class ContactController {
     private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
         Contact newContact = contactService.createContact(contactRequest, null);
         contactService.saveNewContact(newContact);
-        return new ResponseEntity<>(newContact,
+        return new ResponseEntity<>(newContact.toString(),
                                     sessionService.generateHeaders(),
                                     HttpStatus.CREATED);
     }
@@ -62,7 +62,7 @@ public class ContactController {
     private ResponseEntity showContacts() {
         MultipleContactsResponse multipleContactsResponse =
                 new MultipleContactsResponse(contactService.obtainAllContacts());
-        return new ResponseEntity<>(multipleContactsResponse,
+        return new ResponseEntity<>(multipleContactsResponse.toString(),
                                     sessionService.generateHeaders(),
                                     HttpStatus.OK);
     }
@@ -84,8 +84,9 @@ public class ContactController {
 
     private ResponseEntity showDeletingOKResults(Long contactId){
         Contact contactToDelete = contactService.findContactById(contactId);
+        String deletedContactInfo = contactToDelete.toString();
         contactService.deleteContact(contactId);
-        return new ResponseEntity<>(contactToDelete,
+        return new ResponseEntity<>(deletedContactInfo,
                                     sessionService.generateHeaders(),
                                     HttpStatus.OK);
     }
@@ -112,7 +113,7 @@ public class ContactController {
                                                 ContactRequest contactRequest) {
         Contact updatedContact = contactService.createContact(contactRequest, contactId);
         contactService.saveNewContact(updatedContact);
-        return new ResponseEntity<>(updatedContact,
+        return new ResponseEntity<>(updatedContact.toString(),
                                     sessionService.generateHeaders(),
                                     HttpStatus.OK);
     }

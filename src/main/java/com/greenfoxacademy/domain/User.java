@@ -41,4 +41,12 @@ public class User {
         this.enabled = true;
         this.username = "";
     }
+
+    public String toString(){
+        return "{"
+                + "\n\"id\":" + id + ","
+                + "\n\"name\":" + username + ","
+                + "\n\"email\":" + email
+                + "\n}";
+    }
 }

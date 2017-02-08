@@ -11,4 +11,5 @@ public class ContactRequest {
     private Long user_id;
     private String contact_name;
     private String contact_description;
+    private String tags;
 }
