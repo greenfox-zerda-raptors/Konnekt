@@ -26,8 +26,6 @@ public class ForgotPasswordService {
         this.userService = userService;
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.env = env;
-
-
     }
 
     private SecureRandom random = new SecureRandom();
