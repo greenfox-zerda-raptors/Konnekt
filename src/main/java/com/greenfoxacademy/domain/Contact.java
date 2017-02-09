@@ -53,4 +53,5 @@ public class Contact {
                 + "\n\"tags\":" + tags
                 + "\n}";
     }
+
 }

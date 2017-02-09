@@ -6,7 +6,6 @@ import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.requests.ContactRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,46 +30,57 @@ public class ContactService {
         this.tagService = tagService;
     }
 
-    private String obtainUserNameFromSecurity() {
-        return SecurityContextHolder.
-                getContext().
-                getAuthentication().
-                getName();
-    }
-
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
     }
 
-    // TODO refactor this method!!!
     public Contact createContact(ContactRequest contactRequest, Long contactId) {
         Contact contact = (contactId == null) ?
-                new Contact() :
-                contactRepository.findOne(contactId);
+                new Contact() : contactRepository.findOne(contactId);
+        adjustContactProperties(contact, contactRequest);
+        return contact;
+    }
+
+    private boolean tagExists(String currentTagName) {
+        return tagService.findByTagName(currentTagName) != null;
+    }
+
+    private void adjustContactProperties(Contact contact,
+                                         ContactRequest contactRequest) {
         contact.setName(contactRequest.getContact_name());
         contact.setDescription(contactRequest.getContact_description());
         contact.setUser(userService.findUserById(contactRequest.getUser_id()));
-        contact.getTags().clear();
+        manageTags(contact, contactRequest);
+    }
 
+    private void manageTags(Contact contact, ContactRequest contactRequest) {
+        contact.getTags().clear();
         String rawTags = contactRequest.getTags();
-        if (rawTags != null && rawTags.length() > 0) {
-            String[] tags = rawTags.split(",");
-            for (int i = 0; i < tags.length; i++) {
-                String currentTagName = tags[i].trim().toLowerCase();
-                tags[i] = currentTagName;
-                Tag currentTag;
-                if (tagService.findByTagName(currentTagName) == null) {
-                    currentTag = new Tag(currentTagName);
-                } else {
-                    currentTag = tagService.findByTagName(currentTagName);
-                }
-                tagService.saveTag(currentTag);
-                if (!contact.getTags().contains(currentTag)) {
-                    contact.getTags().add(currentTag);
-                }
-            }
+        if (tagsAreRelevant(rawTags)) {
+            processRawTags(contact, rawTags);
         }
-        return contact;
+    }
+
+    private void processRawTags(Contact contact, String rawTags) {
+        String[] tags = rawTags.split(",");
+        for (int i = 0; i < tags.length; i++) {
+            String currentTagName = tags[i].trim().toLowerCase();
+            tags[i] = currentTagName;
+            processCurrentTag(contact, currentTagName);
+        }
+    }
+
+    private void processCurrentTag(Contact contact, String tagName){
+        Tag currentTag = (tagExists(tagName))?
+                tagService.findByTagName(tagName) : new Tag(tagName);
+        tagService.saveTag(currentTag);
+        if (!contact.getTags().contains(currentTag)) {
+            contact.getTags().add(currentTag);
+        }
+    }
+
+    private boolean tagsAreRelevant(String rawTags) {
+        return rawTags != null && rawTags.length() > 0;
     }
 
     public boolean newContactIsValid(Contact contact) {
@@ -109,10 +119,6 @@ public class ContactService {
         return findContactById(contactId) != null;
     }
 
-    private Long obtainCurrentUserId() {
-        return obtainUserByName(obtainUserNameFromSecurity()).getId();
-    }
-
     public boolean contactRequestIsValid(ContactRequest contactRequest) {
         return contactRequest.getUser_id() != null &&
                 contactRequest.getContact_name() != null &&
@@ -121,5 +127,13 @@ public class ContactService {
 
     public Set<Contact> findContactsByTag(Tag tag) {
         return tag.getContacts();
+    }
+
+    public void emptyRepositoryBeforeTest() {
+        contactRepository.deleteAll();
+    }
+
+    public Contact findContactByName(String contactName) {
+        return contactRepository.findByName(contactName);
     }
 }
