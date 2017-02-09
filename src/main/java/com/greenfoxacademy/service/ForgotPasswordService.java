@@ -41,7 +41,7 @@ public class ForgotPasswordService {
                 "http://localhost:8080/resetpassword?token=" :
                 "https://raptor-konnekt.herokuapp.com/resetpassword?token="; //TODO make this better
         String tokenanchor = String.format("<a href=\"%s\">%s</a>", domain + token, domain + token);
-        String contentstring = String.format("<!DOCTYPE html><html lang=\"en\"><body>Kedves %s %s, <br><br>egy jelszóhelyreállítási kérés érkezettt hozzánk e-mail címeddel.<br>Ha ez tőled származott, a kóvetkező címen állíthatod helyre jelszavad: <br>%s<br>Hogyha ezt nem te indítottad, kérlek jelezd adminisztrátorainknak. <br><br>Üdvözlettel, <br>A Konnekt csapata</body></html>", user.getLastName(), user.getFirstName(), tokenanchor);
+        String contentstring = String.format("<!DOCTYPE html><html lang=\"en\"><body>Kedves %s %s, <br><br>egy jelszóhelyreállítási kérés érkezettt hozzánk e-mail címeddel.<br>Ha ez tőled származott, a következő címen állíthatod helyre jelszavad: <br>%s<br>Hogyha ezt nem te indítottad, kérlek jelezd adminisztrátorainknak. <br><br>Üdvözlettel, <br>A Konnekt csapata</body></html>", user.getLastName(), user.getFirstName(), tokenanchor);
         Content content = new Content("text/html", contentstring);
         Mail mail = new Mail(from, subject, to, content);
 
