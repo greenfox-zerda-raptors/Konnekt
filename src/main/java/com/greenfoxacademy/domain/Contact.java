@@ -30,7 +30,7 @@ public class Contact {
     @JoinColumn(name = "user_id")
     private User user;
     @Column(name = "contact_name")
-    private String contactName;
+    private String name;
     @Column(name = "contact_description")
-    private String contactDescription;
+    private String description;
 }
