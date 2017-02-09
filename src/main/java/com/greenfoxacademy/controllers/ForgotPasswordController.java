@@ -28,7 +28,9 @@ public class ForgotPasswordController {
 
 
     @Autowired
-    public ForgotPasswordController(ForgotPasswordService forgotPasswordService, UserService userService, SessionService sessionService) {
+    public ForgotPasswordController(ForgotPasswordService forgotPasswordService,
+                                    UserService userService,
+                                    SessionService sessionService) {
         this.forgotPasswordService = forgotPasswordService;
         this.userService = userService;
         this.sessionService = sessionService;
@@ -46,21 +48,24 @@ public class ForgotPasswordController {
     @GetMapping("/resetpassword")
     @ResponseBody
     public UserResponse getResetPassword(@RequestParam String token) {
-        User activeUser = forgotPasswordService.findUserbyToken(token);
+        User activeUser = forgotPasswordService.findUserByToken(token);
         return new UserResponse(activeUser.getId());
     }
 
     @PostMapping("/resetpassword")
     @ResponseBody
     public ResponseEntity resetPassword(@RequestParam String token, @RequestBody AuthRequest authRequest) {
-        User activeUser = forgotPasswordService.findUserbyToken(token);
-        if (userService.changePassword(activeUser, authRequest)) {
+        User activeUser = forgotPasswordService.findUserByToken(token);
+        if (userService.passwordsMatch(authRequest)) {
+            userService.setUserPassword(activeUser,userService.encryptPassword(authRequest.getPassword()));
             forgotPasswordService.deleteToken(token);
             return new ResponseEntity<>(new UserResponse(activeUser.getId()),
                     sessionService.generateHeaders(),
                     HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(createErrorResponse(authRequest), sessionService.generateHeaders(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(createErrorResponse(authRequest),
+                                        sessionService.generateHeaders(),
+                                        HttpStatus.BAD_REQUEST);
         }
     }
 

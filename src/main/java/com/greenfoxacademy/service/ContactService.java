@@ -24,14 +24,6 @@ public class ContactService {
         this.contactRepository = contactRepository;
     }
 
-    private String obtainUserNameFromSecurity() {
-        return "0";
-//                SecurityContextHolder.
-//                getContext().
-//                getAuthentication().
-//                getName();
-    }
-
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
     }
@@ -80,14 +72,6 @@ public class ContactService {
 
     private boolean contactExists(Long contactId) {
         return findContactById(contactId) != null;
-    }
-
-    public List<Object[]> obtainMyContacts() {
-        return contactRepository.findMyContacts(obtainCurrentUserId());
-    }
-
-    private Long obtainCurrentUserId() {
-        return obtainUserByName(obtainUserNameFromSecurity()).getId();
     }
 
     public boolean contactRequestIsValid(ContactRequest contactRequest) {

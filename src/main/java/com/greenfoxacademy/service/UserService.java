@@ -6,19 +6,13 @@ import com.greenfoxacademy.requests.AuthRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+
 /**
  * Created by JadeTeam on 1/19/2017. Communicates with UserRepository
  */
 
-/* TODO
-   Change password method
-   Make Forgot token repository
-   Domain model: Forgot token
-   Contactservice alapján pw check
-   Contacthoz hasonloan
-   User request (Contact request mintara)
-
-*/
 @Service
 public class UserService {
 
@@ -47,9 +41,9 @@ public class UserService {
 
     public User createUser(AuthRequest registrationRequest) {
         User newUser = new User();
+        String rawPassword = registrationRequest.getPassword();
         newUser.setEmail(registrationRequest.getEmail());
-        newUser.setPassword(registrationRequest.getPassword());
-        save(newUser);
+        setUserPassword(newUser, encryptPassword(rawPassword));
         return newUser;
     }
 
@@ -80,7 +74,7 @@ public class UserService {
         return findUserByEmail(request
                 .getEmail())
                 .getPassword()
-                .equals(request.getPassword());
+                .equals(encryptPassword(request.getPassword())); // here you should hash the received pw
     }
 
     public User findUserById(Long userId) {
@@ -97,13 +91,22 @@ public class UserService {
                 request.getPassword_confirmation() == null;
     }
 
-    public boolean changePassword(User user, AuthRequest authRequest) {
-        if ((authRequest.getPassword().equals(authRequest.getPassword_confirmation()))) {
-            user.setPassword(authRequest.getPassword());
-            userRepository.save(user);
-            return true;
-        } else {
-            return false;
+    public String encryptPassword(String rawPassword) {
+        try {
+            byte[] bytesOfMessage = rawPassword.getBytes("UTF-8");
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] thedigest = md.digest(bytesOfMessage);
+            BigInteger bigInt = new BigInteger(1, thedigest);
+            return bigInt.toString(16);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
         }
     }
+
+    public void setUserPassword(User user, String password) {
+        user.setPassword(password);
+        save(user);
+    }
+
 }
