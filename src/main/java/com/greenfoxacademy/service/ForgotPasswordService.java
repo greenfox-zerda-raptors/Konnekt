@@ -17,15 +17,17 @@ import java.util.Arrays;
 @Service
 public class ForgotPasswordService {
 
-    UserService userService;
-    ForgotPasswordRepository forgotPasswordRepository;
-    Environment env;
+    private ForgotPasswordRepository forgotPasswordRepository;
+    private Environment env;
+    private SessionService sessionService;
 
     @Autowired
-    public ForgotPasswordService(UserService userService, ForgotPasswordRepository forgotPasswordRepository, Environment env) {
-        this.userService = userService;
+    public ForgotPasswordService(ForgotPasswordRepository forgotPasswordRepository,
+                                 Environment env,
+                                 SessionService sessionService) {
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.env = env;
+        this.sessionService = sessionService;
     }
 
     private SecureRandom random = new SecureRandom();
@@ -47,17 +49,13 @@ public class ForgotPasswordService {
 
         SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
         Request request = new Request();
-        Response response = null;
+        Response response = sessionService.generateEmptyResponse();
         try {
             request.method = Method.POST;
             request.endpoint = "mail/send";
             request.body = mail.build();
             response = sg.api(request);
-            System.out.println(response.statusCode);
-            System.out.println(response.body);
-            System.out.println(response.headers);
         } catch (IOException ex) {
-            System.out.println("juj");
             ex.printStackTrace();
         }
         return response.statusCode;
@@ -72,7 +70,7 @@ public class ForgotPasswordService {
         return token;
     }
 
-    public User findUserbyToken(String token) {
+    public User findUserByToken(String token) {
         return forgotPasswordRepository.findOne(token).getUser();
     }
 

@@ -11,7 +11,7 @@ public class NoEmailRegisteredResponse extends ErrorResponse {
 
     public NoEmailRegisteredResponse(UserService userService) {
         super(userService);
-        errors.add(new Error("User error","This email address does not exist!"));
+        errors.add(new Error("User error","No registered user found!"));
     }
 
     @Override
