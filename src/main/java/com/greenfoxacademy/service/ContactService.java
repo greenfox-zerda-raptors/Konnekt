@@ -32,14 +32,14 @@ public class ContactService {
         Contact contact = (contactId == null) ?
                 new Contact() :
                 contactRepository.findOne(contactId);
-        contact.setContactName(contactRequest.getContact_name());
-        contact.setContactDescription(contactRequest.getContact_description());
+        contact.setName(contactRequest.getContact_name());
+        contact.setDescription(contactRequest.getContact_description());
         contact.setUser(userService.findUserById(contactRequest.getUser_id()));
         return contact;
     }
 
     public boolean newContactIsValid(Contact contact) {
-        return contact.getContactName() != null && contact.getContactDescription() != null;
+        return contact.getName() != null && contact.getDescription() != null;
     }
 
     public void saveNewContact(Contact newContact) {
@@ -85,6 +85,6 @@ public class ContactService {
     }
 
     public Contact findContactByName(String contactName) {
-        return contactRepository.findByContactName(contactName);
+        return contactRepository.findByName(contactName);
     }
 }
