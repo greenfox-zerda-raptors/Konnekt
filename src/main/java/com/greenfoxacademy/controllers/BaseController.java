@@ -14,7 +14,8 @@ import java.lang.annotation.*;
 @Documented
 @RestController
 @CrossOrigin(origins = {"https://lasers-cornubite-konnekt.herokuapp.com", "http://localhost:8080"},
-        methods = {RequestMethod.POST, RequestMethod.DELETE, RequestMethod.PUT, RequestMethod.OPTIONS})
+        methods = {RequestMethod.POST, RequestMethod.DELETE, RequestMethod.PUT, RequestMethod.OPTIONS},
+        exposedHeaders="session_token")
 public @interface BaseController {
 
 }
