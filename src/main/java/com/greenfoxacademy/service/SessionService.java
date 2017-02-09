@@ -3,6 +3,7 @@ package com.greenfoxacademy.service;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.SessionRepository;
+import com.greenfoxacademy.responses.AuthCodes;
 import com.sendgrid.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -11,8 +12,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Lenovo on 1/31/2017.
@@ -65,18 +66,28 @@ public class SessionService {
         return responseHeadersWithToken;
     }
 
-    public boolean sessionIsValid(HttpHeaders headers) {
+    public int sessionIsValid(HttpHeaders headers) {
         String token = headers.getFirst("session_token");
-        return  token != null &&
-                tokenExists(token);
-
+        if (token == null) {
+            return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
+        } else if (!tokenExists(token)) {
+            return AuthCodes.SESSION_TOKEN_NOT_REGISTERED;
+        } else if (!tokenIsNotExpired(token)) {
+            return AuthCodes.SESSION_TOKEN_EXPIRED;
+        }
+        return AuthCodes.OK;
     }
 
-    public Response generateEmptyResponse(){
+    private boolean tokenIsNotExpired(String token) {
+        Date currentTime = new Date();
+        return (currentTime.before(sessionRepository.findOne(token).getValid()));
+    }
+
+    public Response generateEmptyResponse() {
         return new Response(400,
-                            "",
-                            new HashMap<String, String>(){{
-                                put("","");
-                            }});
+                "",
+                new HashMap<String, String>() {{
+                    put("", "");
+                }});
     }
 }

@@ -86,6 +86,11 @@ public class UserService {
                 request.getPassword() == null;
     }
 
+    public boolean oneOfPasswordsIsNull(AuthRequest request) {
+        return request.getPassword() == null ||
+                request.getPassword_confirmation() == null;
+    }
+
     public boolean oneOfRegistrationFieldsIsNull(AuthRequest request) {
         return emailOrPasswordIsNull(request) ||
                 request.getPassword_confirmation() == null;

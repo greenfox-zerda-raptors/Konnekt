@@ -2,10 +2,8 @@ package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.requests.ContactRequest;
-import com.greenfoxacademy.responses.BadRequestErrorResponse;
+import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.responses.Error;
-import com.greenfoxacademy.responses.MultipleContactsResponse;
-import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +33,10 @@ public class ContactController {
     @PostMapping("/contacts")
     public ResponseEntity addNewContact(@RequestBody ContactRequest contactRequest,
                                         @RequestHeader HttpHeaders headers) throws Exception {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showAddingResults(contactRequest) :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showAddingResults(ContactRequest contactRequest) {
@@ -56,9 +55,10 @@ public class ContactController {
 
     @GetMapping("/contacts")
     public ResponseEntity listAllContacts(@RequestHeader HttpHeaders headers) {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showContacts() :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showContacts() {
@@ -72,9 +72,10 @@ public class ContactController {
     @DeleteMapping("/contact/{id}")
     public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
                                         @RequestHeader HttpHeaders headers) {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showDeletingResults(contactId, headers) :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers) {
@@ -96,9 +97,10 @@ public class ContactController {
     public ResponseEntity editContact(@PathVariable("id") Long contactId,
                                       @RequestBody ContactRequest contactRequest,
                                       @RequestHeader HttpHeaders headers) throws Exception {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showEditingResults(contactId, headers, contactRequest) :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showEditingResults(Long contactId,
@@ -126,7 +128,7 @@ public class ContactController {
                 contactService.contactRequestIsValid(contactRequest);
     }
 
-    private boolean authIsSuccessful(HttpHeaders headers) {
+    private int authIsSuccessful(HttpHeaders headers) {
         return sessionService.sessionIsValid(headers);
     }
 
@@ -134,10 +136,11 @@ public class ContactController {
         return sessionService.obtainUserIdFromHeaderToken(headers);
     }
 
-    private ResponseEntity respondWithNotAuthenticated() {
+    private ResponseEntity respondWithNotAuthenticated(int authresult) {
         NotAuthenticatedErrorResponse notAuthenticatedErrorResponse =
                 new NotAuthenticatedErrorResponse(
                         new Error("Authentication error", "Not authenticated"));
+        notAuthenticatedErrorResponse.addErrorMessages(authresult);
         return new ResponseEntity<>(notAuthenticatedErrorResponse,
                 sessionService.generateHeaders(),
                 HttpStatus.UNAUTHORIZED);
