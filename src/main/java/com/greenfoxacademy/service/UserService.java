@@ -1,8 +1,8 @@
 package com.greenfoxacademy.service;
 
-import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
+import com.greenfoxacademy.requests.AuthRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,8 +43,7 @@ public class UserService {
         User newUser = new User();
         String rawPassword = registrationRequest.getPassword();
         newUser.setEmail(registrationRequest.getEmail());
-        newUser.setPassword(encryptPassword(rawPassword));
-        save(newUser);
+        setUserPassword(newUser, encryptPassword(rawPassword));
         return newUser;
     }
 
@@ -103,6 +102,11 @@ public class UserService {
             e.printStackTrace();
             return "";
         }
+    }
+
+    public void setUserPassword(User user, String password) {
+        user.setPassword(password);
+        save(user);
     }
 
 }

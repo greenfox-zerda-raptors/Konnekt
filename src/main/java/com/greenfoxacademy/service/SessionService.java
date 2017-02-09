@@ -3,6 +3,7 @@ package com.greenfoxacademy.service;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.SessionRepository;
+import com.sendgrid.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -68,5 +70,13 @@ public class SessionService {
         return  token != null &&
                 tokenExists(token);
 
+    }
+
+    public Response generateEmptyResponse(){
+        return new Response(400,
+                            "",
+                            new HashMap<String, String>(){{
+                                put("","");
+                            }});
     }
 }

@@ -52,7 +52,7 @@ public class LoginTest {
     }
 
     @Test
-    public void testLoginWithValidCreditentials() throws Exception {
+    public void testLoginWithValidCredentials() throws Exception {
         TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
         String validTestJson = createTestJson(validTestLogin);
         mockMvc.perform(post("/login").with(csrf())
