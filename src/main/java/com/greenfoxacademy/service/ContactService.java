@@ -32,8 +32,8 @@ public class ContactService {
         Contact contact = (contactId == null) ?
                 new Contact() :
                 contactRepository.findOne(contactId);
-        contact.setName(contactRequest.getName());
-        contact.setDescription(contactRequest.getDescription());
+        contact.setName(contactRequest.getContact_name());
+        contact.setDescription(contactRequest.getContact_description());
         contact.setUser(userService.findUserById(contactRequest.getUser_id()));
         return contact;
     }
@@ -76,8 +76,8 @@ public class ContactService {
 
     public boolean contactRequestIsValid(ContactRequest contactRequest) {
         return contactRequest.getUser_id() != null &&
-                contactRequest.getName() != null &&
-                contactRequest.getDescription() != null;
+                contactRequest.getContact_name() != null &&
+                contactRequest.getContact_description() != null;
     }
 
     public void emptyRepositoryBeforeTest() {

@@ -9,6 +9,6 @@ import lombok.Data;
 @Data
 public class ContactRequest {
     private Long user_id;
-    private String name;
-    private String description;
+    private String contact_name;
+    private String contact_description;
 }

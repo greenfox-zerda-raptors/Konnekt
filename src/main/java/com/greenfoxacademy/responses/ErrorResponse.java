@@ -3,6 +3,7 @@ package com.greenfoxacademy.responses;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.service.ForgotPasswordService;
 import com.greenfoxacademy.service.UserService;
 
 import java.util.ArrayList;
@@ -16,12 +17,17 @@ public abstract class ErrorResponse {
     protected ArrayList<Error> errors = new ArrayList<>();
 
     protected UserService userService;
+    protected ForgotPasswordService forgotPasswordService;
 
-    public ErrorResponse(UserService userService){
+    public ErrorResponse(UserService userService) {
         this.userService = userService;
     }
 
-    public ErrorResponse (Error error) {
+    public ErrorResponse(ForgotPasswordService forgotPasswordService) {
+        this.forgotPasswordService = forgotPasswordService;
+    }
+
+    public ErrorResponse(Error error) {
         this.errors.add(error);
     }
 
