@@ -40,7 +40,6 @@ public class ContactService {
         adjustContactProperties(contact, contactRequest);
         contact.setName(contactRequest.getName());
         contact.setDescription(contactRequest.getDescription());
-        contact.setUser(userService.findUserById(contactRequest.getUser_id()));
         return contact;
     }
 

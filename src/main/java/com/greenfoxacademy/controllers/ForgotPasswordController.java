@@ -3,8 +3,8 @@ package com.greenfoxacademy.controllers;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.requests.ForgotPasswordRequest;
-import com.greenfoxacademy.responses.PasswordResetErrorResponse;
-import com.greenfoxacademy.responses.UserResponse;
+import com.greenfoxacademy.responses.*;
+import com.greenfoxacademy.responses.Error;
 import com.greenfoxacademy.service.ForgotPasswordService;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
@@ -46,31 +46,53 @@ public class ForgotPasswordController {
 
     @GetMapping("/resetpassword")
     @ResponseBody
-    public UserResponse getResetPassword(@RequestParam String token) {
-        User activeUser = forgotPasswordService.findUserByToken(token);
-        return new UserResponse(activeUser.getId());
-    }
-
-    @PostMapping("/resetpassword")
-    @ResponseBody
-    public ResponseEntity resetPassword(@RequestParam String token, @RequestBody AuthRequest authRequest) {
-        User activeUser = forgotPasswordService.findUserByToken(token);
-        if (userService.passwordsMatch(authRequest)) {
-            userService.setUserPassword(activeUser, userService.encryptPassword(authRequest.getPassword()));
-            forgotPasswordService.deleteToken(token);
+    public ResponseEntity getResetPassword(@RequestParam String token) {
+        int authResult = forgotPasswordService.tokenIsValid(token);
+        if (authResult == AuthCodes.OK) {
+            User activeUser = forgotPasswordService.findUserByToken(token);
             return new ResponseEntity<>(new UserResponse(activeUser.getId()),
                     sessionService.generateHeaders(),
                     HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(createErrorResponse(authRequest),
+            NotAuthenticatedErrorResponse response = new NotAuthenticatedErrorResponse(forgotPasswordService);
+            response.addErrorMessages(authResult);
+            return new ResponseEntity<>(response,
                     sessionService.generateHeaders(),
                     HttpStatus.BAD_REQUEST);
         }
     }
 
+    @PostMapping("/resetpassword")
+    @ResponseBody
+    public ResponseEntity resetPassword(@RequestParam String token, @RequestBody AuthRequest authRequest) {
+        int authResult = forgotPasswordService.tokenIsValid(token);
+        if (authResult == AuthCodes.OK) {
+            if (userService.passwordsMatch(authRequest)) {
+                User activeUser = forgotPasswordService.findUserByToken(token);
+                userService.setUserPassword(activeUser, userService.encryptPassword(authRequest.getPassword()));
+                forgotPasswordService.deleteToken(token);
+                return new ResponseEntity<>(new UserResponse(activeUser.getId()),
+                        sessionService.generateHeaders(),
+                        HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(createErrorResponse(authRequest),
+                        sessionService.generateHeaders(),
+                        HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            NotAuthenticatedErrorResponse notAuthenticatedErrorResponse =
+                    new NotAuthenticatedErrorResponse(
+                            new Error("Authentication error", "Not authenticated"));
+            notAuthenticatedErrorResponse.addErrorMessages(authResult);
+            return new ResponseEntity<>(notAuthenticatedErrorResponse,
+                    sessionService.generateHeaders(),
+                    HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     private ResponseEntity generateForgotPasswordSuccess(User user) {
         String token = forgotPasswordService.saveToken(forgotPasswordService.generateToken(), user);
-        int responseStatus = forgotPasswordService.sendEmail(token, user);
+        int responseStatus = forgotPasswordService.sendEmail(forgotPasswordService.findToken(token));
         return (responseStatus == 202) ? new ResponseEntity<>("Email sent.", sessionService.generateHeaders(), HttpStatus.ACCEPTED) :
                 new ResponseEntity<>("There was a problem sending your email, please try again later.", sessionService.generateHeaders(), HttpStatus.SERVICE_UNAVAILABLE);
 

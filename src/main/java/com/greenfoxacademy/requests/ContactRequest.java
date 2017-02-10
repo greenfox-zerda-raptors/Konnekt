@@ -12,4 +12,5 @@ public class ContactRequest {
     private String tags;
     private String name;
     private String description;
+
 }

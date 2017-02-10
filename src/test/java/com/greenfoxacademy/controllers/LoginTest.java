@@ -9,14 +9,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -29,11 +32,12 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = KonnektApplication.class)
+@TestExecutionListeners(value = TransactionalTestExecutionListener.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = KonnektApplication.class, loader = SpringBootContextLoader.class)
 @ActiveProfiles(Profiles.TEST)
-public class LoginTest {
+@Transactional
+public class LoginTest extends AbstractJUnit4SpringContextTests {
 
     private MockMvc mockMvc;
 
