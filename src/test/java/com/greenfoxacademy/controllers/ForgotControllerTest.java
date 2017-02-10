@@ -88,7 +88,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         mockMvc.perform(post("/forgotpassword")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(emailJson)).
-                andExpect(status().isAccepted()); //TODO find out why this returns 401 and ideally change to 202
+                andExpect(status().isAccepted());
 
     }
 

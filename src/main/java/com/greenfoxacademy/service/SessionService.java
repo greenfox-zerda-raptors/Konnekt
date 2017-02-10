@@ -68,6 +68,10 @@ public class SessionService {
 
     public int sessionIsValid(HttpHeaders headers) {
         String token = headers.getFirst("session_token");
+        return sessionTokenIsValid(token);
+    }
+
+    public int sessionTokenIsValid(String token) {
         if (token == null) {
             return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
         } else if (!tokenExists(token)) {
