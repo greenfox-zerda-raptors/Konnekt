@@ -29,6 +29,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,11 +85,10 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testEmailSendingWithExistingEmail() throws Exception {
         String emailJson = createTestJson(new TestEmail(userService.findUserById(1L).getEmail()));
-        mockMvc.perform(post("/contacts")
+        mockMvc.perform(post("/forgotpassword")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
-                .contentType(MediaType.APPLICATION_JSON).content(createTestJson(
-                        new TestEmail(emailJson)))).
-                andExpect(status().isUnauthorized()); //TODO find out why this returns 401 and ideally change to 202
+                .contentType(MediaType.APPLICATION_JSON).content(emailJson)).
+                andExpect(status().isAccepted()); //TODO find out why this returns 401 and ideally change to 202
 
     }
 
@@ -102,7 +103,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void testResetPasswordGetWithValidToken() throws Exception {
-        mockMvc.perform(get(String.format("/resetpassword?token=%s", token))
+        mockMvc.perform(get("/resetpassword?token={token}", token)
                 .contentType(MediaType.APPLICATION_JSON).content(""))
                 .andExpect(status().isOk());
 
@@ -110,14 +111,57 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void testResetPasswordGetWithInvalidToken() throws Exception {
-        mockMvc.perform(get(String.format("/resetpassword?token=%s", "hahahahahahaha"))
+        mockMvc.perform(get("/resetpassword?token={token}", "hahahahahahaha")
                 .contentType(MediaType.APPLICATION_JSON).content(""))
                 .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testResetPasswordPostWithInvalidToken() throws Exception {
+        String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
+        mockMvc.perform(post("/resetpassword?token={token}", "hahahahahahaha")
+                .contentType(MediaType.APPLICATION_JSON).content(testReset))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testResetPasswordPostWithNonMatchingPassword() throws Exception {
+        String BadTestReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "badpassword"));
+        mockMvc.perform(post("/resetpassword?token={token}", token)
+                .contentType(MediaType.APPLICATION_JSON).content(BadTestReset))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testResetPasswordPostWithNullPassword() throws Exception {
+        String BadTestReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", null));
+        mockMvc.perform(post("/resetpassword?token={token}", token)
+                .contentType(MediaType.APPLICATION_JSON).content(BadTestReset))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testResetPasswordPostWithValidRequest() throws Exception {
+        String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
+        String encrypted = userService.encryptPassword("goodpassword");
+        mockMvc.perform(post("/resetpassword?token={token}", token)
+                .contentType(MediaType.APPLICATION_JSON).content(testReset))
+                .andExpect(status().isOk());
+        assertTrue(userService.findUserById(1L).getPassword().equals(encrypted));
+        assertFalse(sessionService.tokenExists(token));
 
     }
 
     private String createTestJson(TestEmail testEmail) {
         Gson testContactConverter = new Gson();
         return testContactConverter.toJson(testEmail);
+    }
+
+    private String createTestJson(TestRegistration testRegistration) {
+        Gson testRegConverter = new Gson();
+        return testRegConverter.toJson(testRegistration);
     }
 }
