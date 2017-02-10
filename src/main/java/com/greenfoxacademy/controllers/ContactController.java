@@ -1,5 +1,6 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.bodies.ContactBody;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.requests.ContactRequest;
 import com.greenfoxacademy.responses.*;
@@ -49,8 +50,8 @@ public class ContactController {
         Contact newContact = contactService.createContact(contactRequest, null);
         contactService.saveNewContact(newContact);
         return new ResponseEntity<>(newContact,
-                sessionService.generateHeaders(),
-                HttpStatus.CREATED);
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.CREATED);
     }
 
     @GetMapping("/contacts")
@@ -65,8 +66,8 @@ public class ContactController {
         MultipleContactsResponse multipleContactsResponse =
                 new MultipleContactsResponse(contactService.obtainAllContacts());
         return new ResponseEntity<>(multipleContactsResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.OK);
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.OK);
     }
 
     @DeleteMapping("/contact/{id}")
@@ -87,10 +88,11 @@ public class ContactController {
 
     private ResponseEntity showDeletingOKResults(Long contactId) {
         Contact contactToDelete = contactService.findContactById(contactId);
+        ContactBody deletedContactInfo = new ContactBody(contactToDelete);
         contactService.deleteContact(contactId);
-        return new ResponseEntity<>(contactToDelete,
-                sessionService.generateHeaders(),
-                HttpStatus.OK);
+        return new ResponseEntity<>(deletedContactInfo,
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.OK);
     }
 
     @PutMapping("/contact/{id}")
@@ -117,8 +119,8 @@ public class ContactController {
         Contact updatedContact = contactService.createContact(contactRequest, contactId);
         contactService.saveNewContact(updatedContact);
         return new ResponseEntity<>(updatedContact,
-                sessionService.generateHeaders(),
-                HttpStatus.OK);
+                                    sessionService.generateHeaders(),
+                                    HttpStatus.OK);
     }
 
     private boolean editingParametersAreValid(Long contactId,
