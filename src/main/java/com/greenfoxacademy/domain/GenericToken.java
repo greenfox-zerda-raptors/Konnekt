@@ -24,7 +24,7 @@ public abstract class GenericToken {
     Date valid;
 
     @Transient
-    int DEFAULT_TIMEOUT = 30;
+    final int DEFAULT_TIMEOUT = 30;
 
     public GenericToken() {
         this.timestamp = new Date();
