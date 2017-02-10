@@ -34,7 +34,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = KonnektApplication.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = KonnektApplication.class, loader = SpringBootContextLoader.class)
 @ActiveProfiles(Profiles.TEST)
@@ -225,6 +224,30 @@ public class ContactControllerTest {
     }
 
     @Test
+    public void badRequestPost() throws Exception {
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void badRequestPut() throws Exception {
+        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
+        String validTestJson = createTestJson(validTestContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+
+        mockMvc.perform(put("/contact/1")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
     public void deleteContactWithoutToken() throws Exception {
         TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
         String validTestJson = createTestJson(validTestContact);
@@ -237,7 +260,6 @@ public class ContactControllerTest {
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
-
     }
 
     private String createTestJson(TestContact testContact) {

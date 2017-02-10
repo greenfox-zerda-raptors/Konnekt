@@ -1,5 +1,6 @@
 package com.greenfoxacademy.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
 
 import java.util.HashSet;
@@ -31,6 +32,7 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
     @Getter
+    @JsonBackReference
     private Set<Contact> contacts = new HashSet<>();
 
     public Tag(String tagName) {

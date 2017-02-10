@@ -1,8 +1,11 @@
 package com.greenfoxacademy.domain;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.gson.Gson;
+import com.greenfoxacademy.bodies.ContactBody;
+import lombok.*;
+
 import java.util.Set;
 
 import javax.persistence.*;
@@ -17,6 +20,9 @@ import java.util.HashSet;
 @Entity
 @Table(name = "`contact`")
 @Setter
+@JsonSerialize
+@NoArgsConstructor
+@ToString
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
@@ -31,6 +37,7 @@ public class Contact {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @Getter
+    @JsonManagedReference
     private Set<Tag> tags = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -43,15 +50,5 @@ public class Contact {
     @Column(name = "contact_description")
     @Getter
     private String description;
-
-    public String toString(){
-        return "\n{"
-                + "\n\"id\":" + id.toString() + ","
-                + "\n\"user\":" + user + ","
-                + "\n\"name\":" + name + ","
-                + "\n\"description\":" + description + ","
-                + "\n\"tags\":" + tags
-                + "\n}";
-    }
 
 }

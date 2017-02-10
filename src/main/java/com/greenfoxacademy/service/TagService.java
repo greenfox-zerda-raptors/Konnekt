@@ -50,4 +50,7 @@ public class TagService {
         return tagRepository.findByTagName(tagName);
     }
 
+    public void emptyRepositoryBeforeTest() {
+        tagRepository.deleteAll();
+    }
 }

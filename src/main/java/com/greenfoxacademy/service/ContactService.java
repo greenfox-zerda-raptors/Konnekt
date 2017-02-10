@@ -38,6 +38,9 @@ public class ContactService {
         Contact contact = (contactId == null) ?
                 new Contact() : contactRepository.findOne(contactId);
         adjustContactProperties(contact, contactRequest);
+        contact.setName(contactRequest.getName());
+        contact.setDescription(contactRequest.getDescription());
+        contact.setUser(userService.findUserById(contactRequest.getUser_id()));
         return contact;
     }
 
@@ -47,8 +50,8 @@ public class ContactService {
 
     private void adjustContactProperties(Contact contact,
                                          ContactRequest contactRequest) {
-        contact.setName(contactRequest.getContact_name());
-        contact.setDescription(contactRequest.getContact_description());
+        contact.setName(contactRequest.getName());
+        contact.setDescription(contactRequest.getDescription());
         contact.setUser(userService.findUserById(contactRequest.getUser_id()));
         manageTags(contact, contactRequest);
     }
@@ -66,7 +69,9 @@ public class ContactService {
         for (int i = 0; i < tags.length; i++) {
             String currentTagName = tags[i].trim().toLowerCase();
             tags[i] = currentTagName;
-            processCurrentTag(contact, currentTagName);
+            if (currentTagName.length() > 0) {
+                processCurrentTag(contact, currentTagName);
+            }
         }
     }
 
@@ -121,19 +126,19 @@ public class ContactService {
 
     public boolean contactRequestIsValid(ContactRequest contactRequest) {
         return contactRequest.getUser_id() != null &&
-                contactRequest.getContact_name() != null &&
-                contactRequest.getContact_description() != null;
+                contactRequest.getName() != null &&
+                contactRequest.getDescription() != null;
     }
 
     public Set<Contact> findContactsByTag(Tag tag) {
         return tag.getContacts();
     }
 
-    public void emptyRepositoryBeforeTest() {
-        contactRepository.deleteAll();
-    }
-
     public Contact findContactByName(String contactName) {
         return contactRepository.findByName(contactName);
+    }
+
+    public void emptyRepositoryBeforeTest() {
+        contactRepository.deleteAll();
     }
 }

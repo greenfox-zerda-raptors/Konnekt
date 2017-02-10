@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * Created by Lenovo on 2/2/2017.
+ * Created by BSoptei on 2/9/2017.
  */
 @Data
 @AllArgsConstructor
-public class TestLogin {
+public class TestRegistration {
     private String email;
     private String password;
-}
+    private String password_confirmation;
 
+}

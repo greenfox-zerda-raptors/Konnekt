@@ -1,11 +1,10 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.bodies.ContactBody;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.requests.ContactRequest;
-import com.greenfoxacademy.responses.BadRequestErrorResponse;
+import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.responses.Error;
-import com.greenfoxacademy.responses.MultipleContactsResponse;
-import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +34,10 @@ public class ContactController {
     @PostMapping("/contacts")
     public ResponseEntity addNewContact(@RequestBody ContactRequest contactRequest,
                                         @RequestHeader HttpHeaders headers) throws Exception {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showAddingResults(contactRequest) :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showAddingResults(ContactRequest contactRequest) {
@@ -49,22 +49,23 @@ public class ContactController {
     private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
         Contact newContact = contactService.createContact(contactRequest, null);
         contactService.saveNewContact(newContact);
-        return new ResponseEntity<>(newContact.toString(),
+        return new ResponseEntity<>(newContact,
                                     sessionService.generateHeaders(),
                                     HttpStatus.CREATED);
     }
 
     @GetMapping("/contacts")
     public ResponseEntity listAllContacts(@RequestHeader HttpHeaders headers) {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showContacts() :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showContacts() {
         MultipleContactsResponse multipleContactsResponse =
                 new MultipleContactsResponse(contactService.obtainAllContacts());
-        return new ResponseEntity<>(multipleContactsResponse.toString(),
+        return new ResponseEntity<>(multipleContactsResponse,
                                     sessionService.generateHeaders(),
                                     HttpStatus.OK);
     }
@@ -72,9 +73,10 @@ public class ContactController {
     @DeleteMapping("/contact/{id}")
     public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
                                         @RequestHeader HttpHeaders headers) {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showDeletingResults(contactId, headers) :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers) {
@@ -86,21 +88,21 @@ public class ContactController {
 
     private ResponseEntity showDeletingOKResults(Long contactId) {
         Contact contactToDelete = contactService.findContactById(contactId);
-        String deletedContactInfo = contactToDelete.toString();
+        ContactBody deletedContactInfo = new ContactBody(contactToDelete);
         contactService.deleteContact(contactId);
         return new ResponseEntity<>(deletedContactInfo,
                                     sessionService.generateHeaders(),
                                     HttpStatus.OK);
-
     }
 
     @PutMapping("/contact/{id}")
     public ResponseEntity editContact(@PathVariable("id") Long contactId,
                                       @RequestBody ContactRequest contactRequest,
                                       @RequestHeader HttpHeaders headers) throws Exception {
-        return (authIsSuccessful(headers)) ?
+        int authresult = authIsSuccessful(headers);
+        return (authresult == AuthCodes.OK) ?
                 showEditingResults(contactId, headers, contactRequest) :
-                respondWithNotAuthenticated();
+                respondWithNotAuthenticated(authresult);
     }
 
     private ResponseEntity showEditingResults(Long contactId,
@@ -116,7 +118,7 @@ public class ContactController {
                                                 ContactRequest contactRequest) {
         Contact updatedContact = contactService.createContact(contactRequest, contactId);
         contactService.saveNewContact(updatedContact);
-        return new ResponseEntity<>(updatedContact.toString(),
+        return new ResponseEntity<>(updatedContact,
                                     sessionService.generateHeaders(),
                                     HttpStatus.OK);
     }
@@ -128,7 +130,7 @@ public class ContactController {
                 contactService.contactRequestIsValid(contactRequest);
     }
 
-    private boolean authIsSuccessful(HttpHeaders headers) {
+    private int authIsSuccessful(HttpHeaders headers) {
         return sessionService.sessionIsValid(headers);
     }
 
@@ -136,10 +138,11 @@ public class ContactController {
         return sessionService.obtainUserIdFromHeaderToken(headers);
     }
 
-    private ResponseEntity respondWithNotAuthenticated() {
+    private ResponseEntity respondWithNotAuthenticated(int authresult) {
         NotAuthenticatedErrorResponse notAuthenticatedErrorResponse =
                 new NotAuthenticatedErrorResponse(
                         new Error("Authentication error", "Not authenticated"));
+        notAuthenticatedErrorResponse.addErrorMessages(authresult);
         return new ResponseEntity<>(notAuthenticatedErrorResponse,
                 sessionService.generateHeaders(),
                 HttpStatus.UNAUTHORIZED);
