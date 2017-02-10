@@ -1,6 +1,7 @@
 package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.domain.User;
+import com.greenfoxacademy.repository.ForgotPasswordRepository;
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.requests.ForgotPasswordRequest;
 import com.greenfoxacademy.responses.*;
@@ -22,15 +23,18 @@ import org.springframework.web.bind.annotation.*;
 public class ForgotPasswordController {
 
     private ForgotPasswordService forgotPasswordService;
+    ForgotPasswordRepository forgotPasswordRepository;
     private UserService userService;
     private SessionService sessionService;
 
 
     @Autowired
     public ForgotPasswordController(ForgotPasswordService forgotPasswordService,
+                                    ForgotPasswordRepository forgotPasswordRepository,
                                     UserService userService,
                                     SessionService sessionService) {
         this.forgotPasswordService = forgotPasswordService;
+        this.forgotPasswordRepository = forgotPasswordRepository;
         this.userService = userService;
         this.sessionService = sessionService;
     }
@@ -47,7 +51,7 @@ public class ForgotPasswordController {
     @GetMapping("/resetpassword")
     @ResponseBody
     public ResponseEntity getResetPassword(@RequestParam String token) {
-        int authResult = sessionService.sessionTokenIsValid(token);
+        int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository);
         if (authResult == AuthCodes.OK) {
             User activeUser = forgotPasswordService.findUserByToken(token);
             return new ResponseEntity<>(new UserResponse(activeUser.getId()),
@@ -65,7 +69,7 @@ public class ForgotPasswordController {
     @PostMapping("/resetpassword")
     @ResponseBody
     public ResponseEntity resetPassword(@RequestParam String token, @RequestBody AuthRequest authRequest) {
-        int authResult = sessionService.sessionTokenIsValid(token);
+        int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository);
         if (authResult == AuthCodes.OK) {
             if (userService.passwordsMatch(authRequest)) {
                 User activeUser = forgotPasswordService.findUserByToken(token);

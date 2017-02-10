@@ -121,6 +121,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordPostWithInvalidToken() throws Exception {
         String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
         mockMvc.perform(post("/resetpassword?token={token}", "hahahahahahaha")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isUnauthorized());
     }
@@ -129,6 +130,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordPostWithNonMatchingPassword() throws Exception {
         String BadTestReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "badpassword"));
         mockMvc.perform(post("/resetpassword?token={token}", token)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(BadTestReset))
                 .andExpect(status().isBadRequest());
 
@@ -138,6 +140,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordPostWithNullPassword() throws Exception {
         String BadTestReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", null));
         mockMvc.perform(post("/resetpassword?token={token}", token)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(BadTestReset))
                 .andExpect(status().isBadRequest());
 
@@ -148,10 +151,11 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
         String encrypted = userService.encryptPassword("goodpassword");
         mockMvc.perform(post("/resetpassword?token={token}", token)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isOk());
         assertTrue(userService.findUserById(1L).getPassword().equals(encrypted));
-        assertFalse(sessionService.tokenExists(token));
+        assertFalse(sessionService.tokenExists(token, forgotPasswordRepository));
 
     }
 

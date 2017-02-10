@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,7 +70,7 @@ public class TagControllerTest {
     }
 
     @Test
-    public void instantiateTagControllerTest(){
+    public void instantiateTagControllerTest() {
         TagController tagController = new TagController(null, null);
         assertTrue(tagController != null);
     }

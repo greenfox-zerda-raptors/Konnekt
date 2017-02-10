@@ -76,7 +76,7 @@ public class ForgotPasswordService {
     }
 
     public ForgotPasswordToken findToken(String token) {
-        return forgotPasswordRepository.findOne(token);
+        return (ForgotPasswordToken) forgotPasswordRepository.findOne(token);
     }
 
     public User findUserByToken(String token) {
