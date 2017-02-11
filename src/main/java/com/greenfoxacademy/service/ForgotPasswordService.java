@@ -47,7 +47,7 @@ public class ForgotPasswordService {
         String[] active = env.getActiveProfiles();
         String domain = (Arrays.stream(active).anyMatch(env -> (env.equalsIgnoreCase(Profiles.DEV) || env.equalsIgnoreCase(Profiles.TEST)))) ?
                 "http://localhost:8080/resetpassword?token=" :
-                "https://raptor-konnekt.herokuapp.com/resetpassword?token="; //TODO make this better
+                "https://raptor-konnekt.herokuapp.com/resetpassword?token="; //TODO is this necessary?
         String tokenanchor = String.format("<a href=\"%s\">%s</a>", domain + token, domain + token);
         String contentstring = String.format("<!DOCTYPE html><html lang=\"en\"><body>Kedves %s %s, <br><br>egy jelszóhelyreállítási kérés érkezettt hozzánk e-mail címeddel.<br>Ha ez tőled származott, a következő címen állíthatod helyre jelszavad: <br><br>%s<br><br> A link a következő időpontig érvényes: %s. Hogyha ezt nem te indítottad, kérlek jelezd adminisztrátorainknak. <br><br>Üdvözlettel, <br>A Konnekt csapata</body></html>", user.getLastName(), user.getFirstName(), tokenanchor, dateFormat.format(valid));
         Content content = new Content("text/html", contentstring);

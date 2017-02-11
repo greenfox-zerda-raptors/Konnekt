@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class ForgotPasswordController {
 
     private ForgotPasswordService forgotPasswordService;
-    ForgotPasswordRepository forgotPasswordRepository;
+    private ForgotPasswordRepository forgotPasswordRepository;
     private UserService userService;
     private SessionService sessionService;
 
@@ -70,7 +70,7 @@ public class ForgotPasswordController {
     @ResponseBody
     public ResponseEntity resetPassword(@RequestParam String token, @RequestBody AuthRequest authRequest) {
         int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository);
-        if (authResult == AuthCodes.OK) {
+        if (authResult == AuthCodes.OK) { //TODO clean up this branching statement
             if (userService.passwordsMatch(authRequest)) {
                 User activeUser = forgotPasswordService.findUserByToken(token);
                 userService.setUserPassword(activeUser, userService.encryptPassword(authRequest.getPassword()));
@@ -98,18 +98,18 @@ public class ForgotPasswordController {
         String token = forgotPasswordService.saveToken(forgotPasswordService.generateToken(), user);
         int responseStatus = forgotPasswordService.sendEmail(forgotPasswordService.findToken(token));
         return (responseStatus == 202) ? new ResponseEntity<>("Email sent.", sessionService.generateHeaders(), HttpStatus.ACCEPTED) :
-                new ResponseEntity<>("There was a problem sending your email, please try again later.", sessionService.generateHeaders(), HttpStatus.SERVICE_UNAVAILABLE);
+                new ResponseEntity<>("There was a problem sending your email, please try again later.", sessionService.generateHeaders(), HttpStatus.SERVICE_UNAVAILABLE);//TODO change these to standard response once spec is in place
 
     }
 
-    private PasswordResetErrorResponse createErrorResponse(AuthRequest request) {
+    private PasswordResetErrorResponse createErrorResponse(AuthRequest request) { //TODO standardize responses and stop using authrequest (also put that into future spec)
         PasswordResetErrorResponse errorResponse =
                 new PasswordResetErrorResponse(userService);
         errorResponse.addErrorMessages(request);
         return errorResponse;
     }
 
-    private PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) {
+    private PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) { //TODO unify overloaded methods with lambda or similar
         PasswordResetErrorResponse errorResponse =
                 new PasswordResetErrorResponse(userService);
         errorResponse.addErrorMessagesForForgotRequest(request);

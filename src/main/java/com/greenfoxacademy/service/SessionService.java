@@ -35,7 +35,7 @@ public class SessionService {
         return currentSession;
     }
 
-    private String generateToken() {
+    public String generateToken() {
         return new BigInteger(130, random).toString(32);
     }
 
@@ -72,7 +72,7 @@ public class SessionService {
         return sessionTokenIsValid(token, sessionRepository);
     }
 
-    public int sessionTokenIsValid(String token, GenericTokenRepository repository) {
+    public int sessionTokenIsValid(String token, GenericTokenRepository repository) { //TODO possibly implement this using lambdas
         if (token == null) {
             return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
         } else if (!tokenExists(token, repository)) {
@@ -88,7 +88,7 @@ public class SessionService {
         return (currentTime.before(repository.findOne(token).getValid()));
     }
 
-    public Response generateEmptyResponse() {
+    Response generateEmptyResponse() {
         return new Response(400,
                 "",
                 new HashMap<String, String>() {{
