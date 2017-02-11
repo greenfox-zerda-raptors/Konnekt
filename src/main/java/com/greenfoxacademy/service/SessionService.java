@@ -2,6 +2,7 @@ package com.greenfoxacademy.service;
 
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
+import com.greenfoxacademy.repository.GenericTokenRepository;
 import com.greenfoxacademy.repository.SessionRepository;
 import com.greenfoxacademy.responses.AuthCodes;
 import com.sendgrid.Response;
@@ -34,7 +35,7 @@ public class SessionService {
         return currentSession;
     }
 
-    private String generateToken() {
+    public String generateToken() {
         return new BigInteger(130, random).toString(32);
     }
 
@@ -42,8 +43,8 @@ public class SessionService {
         sessionRepository.save(currentSession);
     }
 
-    public boolean tokenExists(String token) {
-        return sessionRepository.findOne(token) != null;
+    public boolean tokenExists(String token, GenericTokenRepository repository) {
+        return repository.findOne(token) != null;
     }
 
     public Long obtainUserIdFromHeaderToken(HttpHeaders headers) {
@@ -68,22 +69,26 @@ public class SessionService {
 
     public int sessionIsValid(HttpHeaders headers) {
         String token = headers.getFirst("session_token");
+        return sessionTokenIsValid(token, sessionRepository);
+    }
+
+    public int sessionTokenIsValid(String token, GenericTokenRepository repository) { //TODO possibly implement this using lambdas
         if (token == null) {
             return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
-        } else if (!tokenExists(token)) {
+        } else if (!tokenExists(token, repository)) {
             return AuthCodes.SESSION_TOKEN_NOT_REGISTERED;
-        } else if (!tokenIsNotExpired(token)) {
+        } else if (!tokenIsNotExpired(token, repository)) {
             return AuthCodes.SESSION_TOKEN_EXPIRED;
         }
         return AuthCodes.OK;
     }
 
-    private boolean tokenIsNotExpired(String token) {
+    private boolean tokenIsNotExpired(String token, GenericTokenRepository repository) {
         Date currentTime = new Date();
-        return (currentTime.before(sessionRepository.findOne(token).getValid()));
+        return (currentTime.before(repository.findOne(token).getValid()));
     }
 
-    public Response generateEmptyResponse() {
+    Response generateEmptyResponse() {
         return new Response(400,
                 "",
                 new HashMap<String, String>() {{
