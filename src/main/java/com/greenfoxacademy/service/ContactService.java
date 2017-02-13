@@ -8,6 +8,8 @@ import com.greenfoxacademy.requests.ContactRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +31,9 @@ public class ContactService {
         this.contactRepository = contactRepository;
         this.tagService = tagService;
     }
+
+    @PersistenceContext(name = "default")
+    EntityManager em;
 
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
@@ -74,8 +79,8 @@ public class ContactService {
         }
     }
 
-    private void processCurrentTag(Contact contact, String tagName){
-        Tag currentTag = (tagExists(tagName))?
+    private void processCurrentTag(Contact contact, String tagName) {
+        Tag currentTag = (tagExists(tagName)) ?
                 tagService.findByTagName(tagName) : new Tag(tagName);
         tagService.saveTag(currentTag);
         if (!contact.getTags().contains(currentTag)) {
@@ -137,7 +142,10 @@ public class ContactService {
         return contactRepository.findByName(contactName);
     }
 
+
     public void emptyRepositoryBeforeTest() {
         contactRepository.deleteAll();
+        em.createNativeQuery("ALTER SEQUENCE contact_id_seq RESTART WITH 1")
+                .executeUpdate();
     }
 }

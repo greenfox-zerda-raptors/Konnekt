@@ -252,6 +252,40 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void unauthenticatedContactIdGet() throws Exception {
+        int id = 1;
+        mockMvc.perform(get("/contact/{id}", id)
+                .header("session_token", "abcdefgéééééééééééé"))
+                .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    public void contactIdGet() throws Exception {
+        int id = 1;
+        TestContact testContact = new TestContact("Pista bá", "Fúr, farag", 1L);
+        String validTestJson = createTestJson(testContact);
+
+        mockMvc.perform(post("/contacts")
+                .header("session_token", "abcde")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+
+        mockMvc.perform(get("/contact/{id}", id)
+                .header("session_token", "abcde"))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void invalidContactIdGet() throws Exception {
+        int id = -1;
+        mockMvc.perform(get("/contact/{id}", id)
+                .header("session_token", "abcde"))
+                .andExpect(status().isNotFound());
+
+    }
 
     @Test
     public void deleteContactWithoutToken() throws Exception {
@@ -267,6 +301,7 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
     }
+
 
     private String createTestJson(TestContact testContact) {
         Gson testContactConverter = new Gson();
