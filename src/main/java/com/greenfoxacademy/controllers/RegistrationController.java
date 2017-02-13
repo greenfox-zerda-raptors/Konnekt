@@ -19,14 +19,14 @@ import java.io.IOException;
  * Created by JadeTeam on 1/20/2017. Register new user
  */
 @BaseController
-public class RegistrationController {
+public class RegistrationController extends CommonTasksHandler {
     private final UserService userService;
-    private SessionService sessionService;
 
     @Autowired
-    public RegistrationController(UserService userService, SessionService sessionService) {
+    public RegistrationController(UserService userService,
+                                  SessionService sessionService) {
+        super(sessionService);
         this.userService = userService;
-        this.sessionService = sessionService;
     }
 
     @PostMapping("/register")
@@ -37,17 +37,11 @@ public class RegistrationController {
     }
 
     private ResponseEntity generateSuccessfulRegistration(AuthRequest request) {
-        User newUser = userService.createUser(request);
-        Session currentSession = sessionService.createSession(newUser);
-        return new ResponseEntity<>(new UserResponse(newUser.getId()),
-                                    sessionService.generateHeadersWithToken(currentSession.getToken()),
-                                    HttpStatus.CREATED);
+        return showSuccessfulAuthResults(userService.createUser(request));
     }
 
     private ResponseEntity generateRegistrationError(AuthRequest request) {
-        return new ResponseEntity<>(createErrorResponse(request),
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.FORBIDDEN);
+        return showCustomResults(createErrorResponse(request), HttpStatus.FORBIDDEN);
     }
 
     private RegistrationErrorResponse createErrorResponse(AuthRequest request) {

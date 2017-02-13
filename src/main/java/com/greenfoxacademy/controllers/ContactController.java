@@ -4,7 +4,6 @@ import com.greenfoxacademy.bodies.ContactBody;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.requests.ContactRequest;
 import com.greenfoxacademy.responses.*;
-import com.greenfoxacademy.responses.Error;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,90 +18,83 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @BaseController
-public class ContactController {
+public class ContactController extends CommonTasksHandler {
 
     private ContactService contactService;
-    private SessionService sessionService;
 
     @Autowired
     public ContactController(ContactService contactService,
                              SessionService sessionService) {
+        super(sessionService);
         this.contactService = contactService;
-        this.sessionService = sessionService;
     }
 
     @PostMapping("/contacts")
     public ResponseEntity addNewContact(@RequestBody ContactRequest contactRequest,
                                         @RequestHeader HttpHeaders headers) throws Exception {
-        int authresult = authIsSuccessful(headers);
-        return (authresult == AuthCodes.OK) ?
+        int authResult = authIsSuccessful(headers);
+        return (authResult == AuthCodes.OK) ?
                 showAddingResults(contactRequest) :
-                respondWithNotAuthenticated(authresult);
+                respondWithNotAuthenticated(authResult);
     }
 
     private ResponseEntity showAddingResults(ContactRequest contactRequest) {
         return (contactService.contactRequestIsValid(contactRequest)) ?
                 showAddingOKResults(contactRequest) :
-                respondWithBadRequest();
+                respondWithBadRequest(badFormat);
     }
 
     private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
         Contact newContact = contactService.createContact(contactRequest, null);
         contactService.saveNewContact(newContact);
-        return new ResponseEntity<>(newContact,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.CREATED);
+        return showCustomResults(newContact, HttpStatus.CREATED);
     }
 
     @GetMapping("/contacts")
     public ResponseEntity listAllContacts(@RequestHeader HttpHeaders headers) {
-        int authresult = authIsSuccessful(headers);
-        return (authresult == AuthCodes.OK) ?
+        int authResult = authIsSuccessful(headers);
+        return (authResult == AuthCodes.OK) ?
                 showContacts() :
-                respondWithNotAuthenticated(authresult);
+                respondWithNotAuthenticated(authResult);
     }
 
     private ResponseEntity showContacts() {
         MultipleContactsResponse multipleContactsResponse =
                 new MultipleContactsResponse(contactService.obtainAllContacts());
-        return new ResponseEntity<>(multipleContactsResponse,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.OK);
+        return showCustomResults(multipleContactsResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/contact/{id}")
     public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
                                         @RequestHeader HttpHeaders headers) {
-        int authresult = authIsSuccessful(headers);
-        return (authresult == AuthCodes.OK) ?
+        int authResult = authIsSuccessful(headers);
+        return (authResult == AuthCodes.OK) ?
                 showDeletingResults(contactId, headers) :
-                respondWithNotAuthenticated(authresult);
+                respondWithNotAuthenticated(authResult);
     }
 
     private ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers) {
         Long userId = obtainUserId(headers);
         return (contactService.contactBelongsToUser(contactId, userId)) ?
                 showDeletingOKResults(contactId) :
-                respondWithBadRequest();
+                respondWithBadRequest(badFormat);
     }
 
     private ResponseEntity showDeletingOKResults(Long contactId) {
         Contact contactToDelete = contactService.findContactById(contactId);
         ContactBody deletedContactInfo = new ContactBody(contactToDelete);
         contactService.deleteContact(contactId);
-        return new ResponseEntity<>(deletedContactInfo,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.OK);
+        return showCustomResults(deletedContactInfo, HttpStatus.OK);
     }
 
     @PutMapping("/contact/{id}")
     public ResponseEntity editContact(@PathVariable("id") Long contactId,
                                       @RequestBody ContactRequest contactRequest,
                                       @RequestHeader HttpHeaders headers) throws Exception {
-        int authresult = authIsSuccessful(headers);
-        return (authresult == AuthCodes.OK) ?
+        int authResult = authIsSuccessful(headers);
+        return (authResult == AuthCodes.OK) ?
                 showEditingResults(contactId, headers, contactRequest) :
-                respondWithNotAuthenticated(authresult);
+                respondWithNotAuthenticated(authResult);
     }
 
     private ResponseEntity showEditingResults(Long contactId,
@@ -111,16 +103,14 @@ public class ContactController {
         Long userId = obtainUserId(headers);
         return (editingParametersAreValid(contactId, userId, contactRequest)) ?
                 showEditingOKResults(contactId, contactRequest) :
-                respondWithBadRequest();
+                respondWithBadRequest(badFormat);
     }
 
     private ResponseEntity showEditingOKResults(Long contactId,
                                                 ContactRequest contactRequest) {
         Contact updatedContact = contactService.createContact(contactRequest, contactId);
         contactService.saveNewContact(updatedContact);
-        return new ResponseEntity<>(updatedContact,
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.OK);
+        return showCustomResults(updatedContact, HttpStatus.OK);
     }
 
     private boolean editingParametersAreValid(Long contactId,
@@ -130,31 +120,8 @@ public class ContactController {
                 contactService.contactRequestIsValid(contactRequest);
     }
 
-    private int authIsSuccessful(HttpHeaders headers) {
-        return sessionService.sessionIsValid(headers);
-    }
-
     private Long obtainUserId(HttpHeaders headers) {
         return sessionService.obtainUserIdFromHeaderToken(headers);
-    }
-
-    private ResponseEntity respondWithNotAuthenticated(int authresult) {
-        NotAuthenticatedErrorResponse notAuthenticatedErrorResponse =
-                new NotAuthenticatedErrorResponse(
-                        new Error("Authentication error", "Not authenticated"));
-        notAuthenticatedErrorResponse.addErrorMessages(authresult);
-        return new ResponseEntity<>(notAuthenticatedErrorResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.UNAUTHORIZED);
-    }
-
-    private ResponseEntity respondWithBadRequest() {
-        BadRequestErrorResponse badRequestErrorResponse =
-                new BadRequestErrorResponse(
-                        new Error("Data error", "Data did not match required format."));
-        return new ResponseEntity<>(badRequestErrorResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.BAD_REQUEST);
     }
 
 }

@@ -1,10 +1,7 @@
 package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.domain.Tag;
-import com.greenfoxacademy.repository.TagRepository;
 import com.greenfoxacademy.responses.AuthCodes;
-import com.greenfoxacademy.responses.Error;
-import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
 import com.greenfoxacademy.responses.TagsResponse;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.TagService;
@@ -21,16 +18,15 @@ import java.util.List;
  * Created by BSoptei on 2/8/2017.
  */
 @BaseController
-public class TagController {
+public class TagController extends CommonTasksHandler {
 
     private TagService tagService;
-    private SessionService sessionService;
 
     @Autowired
     public TagController(TagService tagService,
                          SessionService sessionService) {
+        super(sessionService);
         this.tagService = tagService;
-        this.sessionService = sessionService;
     }
 
     @GetMapping("/tags")
@@ -47,25 +43,7 @@ public class TagController {
         for (Tag tag : allTags) {
             tagsResponse.getTags().add(tag.getTagName());
         }
-        return new ResponseEntity<>(tagsResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.OK);
+        return showCustomResults(tagsResponse, HttpStatus.OK);
     }
 
-
-    // TODO move this to a separate class
-    private int authIsSuccessful(HttpHeaders headers) {
-        return sessionService.sessionIsValid(headers);
-    }
-
-    // TODO move this to a separate class
-    private ResponseEntity respondWithNotAuthenticated(int authResult) {
-        NotAuthenticatedErrorResponse notAuthenticatedErrorResponse =
-                new NotAuthenticatedErrorResponse(
-                        new Error("Authentication error", "Not authenticated"));
-        notAuthenticatedErrorResponse.addErrorMessages(authResult);
-        return new ResponseEntity<>(notAuthenticatedErrorResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.UNAUTHORIZED);
-    }
 }

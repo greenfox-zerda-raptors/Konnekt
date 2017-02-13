@@ -19,16 +19,15 @@ import java.io.IOException;
  * Created by BSoptei on 1/31/2017. Login endpoint
  */
 @BaseController
-public class LoginController {
+public class LoginController extends CommonTasksHandler {
 
     private UserService userService;
-    private SessionService sessionService;
 
     @Autowired
     public LoginController(UserService userService,
                            SessionService sessionService) {
-          this.userService = userService;
-        this.sessionService = sessionService;
+        super(sessionService);
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -39,17 +38,11 @@ public class LoginController {
     }
 
     private ResponseEntity generateSuccessfulLogin(AuthRequest request) {
-        User currentUser = userService.findUserByEmail(request.getEmail());
-        Session currentSession = sessionService.createSession(currentUser);
-        return new ResponseEntity<>(new UserResponse(currentUser.getId()),
-                                    sessionService.generateHeadersWithToken(currentSession.getToken()),
-                                    HttpStatus.CREATED);
+        return showSuccessfulAuthResults(userService.findUserByEmail(request.getEmail()));
     }
 
     private ResponseEntity generateLoginError(AuthRequest request) {
-        return new ResponseEntity<>(crateErrorResponse(request),
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.UNAUTHORIZED);
+        return showCustomResults(crateErrorResponse(request), HttpStatus.UNAUTHORIZED);
     }
 
     private LoginErrorResponse crateErrorResponse(AuthRequest request) {
