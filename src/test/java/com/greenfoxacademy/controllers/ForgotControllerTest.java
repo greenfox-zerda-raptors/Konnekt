@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
 import com.greenfoxacademy.domain.ForgotPasswordToken;
+import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.repository.ForgotPasswordRepository;
 import com.greenfoxacademy.repository.SessionRepository;
 import com.greenfoxacademy.repository.UserRepository;
+import com.greenfoxacademy.responses.AuthCodes;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.ForgotPasswordService;
 import com.greenfoxacademy.service.SessionService;
@@ -17,6 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootContextLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,8 +32,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,12 +89,12 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
-    public void testEmailSendingWithExistingEmail() throws Exception {
+    public void testEmailSendingWithExistingEmail() throws Exception { //this returns 503 without an internet connection
         String emailJson = createTestJson(new TestEmail(userService.findUserById(1L).getEmail()));
         mockMvc.perform(post("/forgotpassword")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(emailJson)).
-                andExpect(status().isAccepted()); //TODO find out why this returns 401 and ideally change to 202
+                andExpect(status().isAccepted());
 
     }
 
@@ -121,6 +127,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordPostWithInvalidToken() throws Exception {
         String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
         mockMvc.perform(post("/resetpassword?token={token}", "hahahahahahaha")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isUnauthorized());
     }
@@ -129,6 +136,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordPostWithNonMatchingPassword() throws Exception {
         String BadTestReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "badpassword"));
         mockMvc.perform(post("/resetpassword?token={token}", token)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(BadTestReset))
                 .andExpect(status().isBadRequest());
 
@@ -138,6 +146,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordPostWithNullPassword() throws Exception {
         String BadTestReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", null));
         mockMvc.perform(post("/resetpassword?token={token}", token)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(BadTestReset))
                 .andExpect(status().isBadRequest());
 
@@ -148,11 +157,59 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
         String encrypted = userService.encryptPassword("goodpassword");
         mockMvc.perform(post("/resetpassword?token={token}", token)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isOk());
         assertTrue(userService.findUserById(1L).getPassword().equals(encrypted));
-        assertFalse(sessionService.tokenExists(token));
+        assertFalse(sessionService.tokenExists(token, forgotPasswordRepository));
 
+    }
+
+    @Test
+    public void simpleTokenTests() {
+        ForgotPasswordToken forgotToken = new ForgotPasswordToken(5);
+        forgotToken.setToken(forgotPasswordService.generateToken());
+        ForgotPasswordToken expiredToken = new ForgotPasswordToken(-5);
+        expiredToken.setToken(forgotPasswordService.generateToken());
+        ForgotPasswordToken userIdToken = new ForgotPasswordToken(userService.findUserById(1L), 5);
+        userIdToken.setToken(forgotPasswordService.generateToken());
+        String tokenString = forgotPasswordService.generateToken();
+        ForgotPasswordToken manualToken = new ForgotPasswordToken(tokenString, userService.findUserById(1L), 5);
+        Session sessionToken = new Session(5);
+        sessionToken.setToken(sessionService.generateToken());
+        Session expiredSessionToken = new Session(-5);
+        expiredSessionToken.setToken(sessionService.generateToken());
+        Session userIdSessionToken = new Session(userService.findUserById(1L), 5);
+        userIdSessionToken.setToken(sessionService.generateToken());
+        Session manualSessionToken = new Session(tokenString, userService.findUserById(1L), 5);
+        List<ForgotPasswordToken> forgotList = new LinkedList<>();
+        forgotList.add(forgotToken);
+        forgotList.add(expiredToken);
+        forgotList.add(userIdToken);
+        forgotList.add(manualToken);
+        forgotPasswordRepository.save(forgotList);
+        List<Session> sessionList = new LinkedList<>();
+        sessionList.add(sessionToken);
+        sessionList.add(expiredSessionToken);
+        sessionList.add(userIdSessionToken);
+        sessionList.add(manualSessionToken);
+        sessionRepository.save(sessionList);
+
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(forgotToken.getToken(), forgotPasswordRepository));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredToken.getToken(), forgotPasswordRepository));
+        assertEquals(1L, (long) forgotPasswordService.findUserByToken(userIdToken.getToken()).getId());
+        assertEquals(userService.findUserById(1L), forgotPasswordService.findUserByToken(tokenString));
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository));
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("session_token", userIdSessionToken.getToken());
+        assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
+        httpHeaders.clear();
+        httpHeaders.set("session_token", tokenString);
+        assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
+        Date now = new Date();
+//        assertTrue(now.after(sessionRepository.findOne(tokenString).getTimestamp()));
+        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT() > 0);
     }
 
     private String createTestJson(TestEmail testEmail) {

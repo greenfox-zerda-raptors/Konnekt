@@ -18,32 +18,24 @@ import java.util.List;
  * Created by BSoptei on 2/8/2017.
  */
 @BaseController
-public class TagController extends CommonTasksHandler {
+public class TagController {
 
     private TagService tagService;
+    private SessionService sessionService;
 
     @Autowired
     public TagController(TagService tagService,
                          SessionService sessionService) {
-        super(sessionService);
+        this.sessionService = sessionService;
         this.tagService = tagService;
     }
 
     @GetMapping("/tags")
     public ResponseEntity listTag(@RequestHeader  HttpHeaders headers) {
-        int authResult = authIsSuccessful(headers);
+        int authResult = sessionService.sessionIsValid(headers);
         return (authResult == AuthCodes.OK) ?
-                showTags() :
-                respondWithNotAuthenticated(authResult);
-    }
-
-    private ResponseEntity showTags() {
-        List<Tag> allTags = tagService.findAllTags();
-        TagsResponse tagsResponse = new TagsResponse();
-        for (Tag tag : allTags) {
-            tagsResponse.getTags().add(tag.getTagName());
-        }
-        return showCustomResults(tagsResponse, HttpStatus.OK);
+                tagService.showTags() :
+                sessionService.respondWithNotAuthenticated(authResult);
     }
 
 }

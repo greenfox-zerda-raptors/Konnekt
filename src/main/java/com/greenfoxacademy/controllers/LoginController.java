@@ -19,36 +19,23 @@ import java.io.IOException;
  * Created by BSoptei on 1/31/2017. Login endpoint
  */
 @BaseController
-public class LoginController extends CommonTasksHandler {
+public class LoginController {
 
+    private SessionService sessionService;
     private UserService userService;
 
     @Autowired
     public LoginController(UserService userService,
                            SessionService sessionService) {
-        super(sessionService);
+        this.sessionService = sessionService;
         this.userService = userService;
     }
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody AuthRequest request) throws IOException {
         return (userService.userLoginIsValid(request))?
-                generateSuccessfulLogin(request):
-                generateLoginError(request);
+                sessionService.generateSuccessfulLogin(request):
+                sessionService.generateLoginError(request);
     }
 
-    private ResponseEntity generateSuccessfulLogin(AuthRequest request) {
-        return showSuccessfulAuthResults(userService.findUserByEmail(request.getEmail()));
-    }
-
-    private ResponseEntity generateLoginError(AuthRequest request) {
-        return showCustomResults(crateErrorResponse(request), HttpStatus.UNAUTHORIZED);
-    }
-
-    private LoginErrorResponse crateErrorResponse(AuthRequest request) {
-        LoginErrorResponse errorResponse =
-                new LoginErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
-    }
 }

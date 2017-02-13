@@ -1,11 +1,18 @@
 package com.greenfoxacademy.service;
 
+import com.greenfoxacademy.bodies.ContactBody;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.Tag;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.requests.ContactRequest;
+import com.greenfoxacademy.responses.BadRequestErrorResponse;
+import com.greenfoxacademy.responses.Error;
+import com.greenfoxacademy.responses.MultipleContactsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,14 +27,20 @@ public class ContactService {
     private UserService userService;
     private ContactRepository contactRepository;
     private TagService tagService;
+    private CommonTasksService commonTasksService;
+    private final BadRequestErrorResponse badFormat =
+            new BadRequestErrorResponse(
+                    new Error("Data error", "Data did not match required format."));
 
     @Autowired
     public ContactService(UserService userService,
                           ContactRepository contactRepository,
-                          TagService tagService) {
+                          TagService tagService,
+                          CommonTasksService commonTasksService) {
         this.userService = userService;
         this.contactRepository = contactRepository;
         this.tagService = tagService;
+        this.commonTasksService = commonTasksService;
     }
 
     private User obtainUserByName(String userName) {
@@ -139,5 +152,58 @@ public class ContactService {
 
     public void emptyRepositoryBeforeTest() {
         contactRepository.deleteAll();
+    }
+
+    public ResponseEntity showAddingResults(ContactRequest contactRequest) {
+        return (contactRequestIsValid(contactRequest)) ?
+                showAddingOKResults(contactRequest) :
+                commonTasksService.respondWithBadRequest(badFormat);
+    }
+
+    private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
+        Contact newContact = createContact(contactRequest, null);
+        saveNewContact(newContact);
+        return commonTasksService.showCustomResults(newContact, HttpStatus.CREATED);
+    }
+
+    public ResponseEntity showContacts() {
+        MultipleContactsResponse multipleContactsResponse =
+                new MultipleContactsResponse(obtainAllContacts());
+        return commonTasksService.showCustomResults(multipleContactsResponse, HttpStatus.OK);
+    }
+    public ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers, Long userId) {
+        return (contactBelongsToUser(contactId, userId)) ?
+                showDeletingOKResults(contactId) :
+                commonTasksService.respondWithBadRequest(badFormat);
+    }
+
+    private ResponseEntity showDeletingOKResults(Long contactId) {
+        Contact contactToDelete = findContactById(contactId);
+        ContactBody deletedContactInfo = new ContactBody(contactToDelete);
+        deleteContact(contactId);
+        return commonTasksService.showCustomResults(deletedContactInfo, HttpStatus.OK);
+    }
+
+    public ResponseEntity showEditingResults(Long contactId,
+                                             HttpHeaders headers,
+                                             ContactRequest contactRequest,
+                                             Long userId) {
+        return (editingParametersAreValid(contactId, userId, contactRequest)) ?
+                showEditingOKResults(contactId, contactRequest) :
+                commonTasksService.respondWithBadRequest(badFormat);
+    }
+
+    private ResponseEntity showEditingOKResults(Long contactId,
+                                                ContactRequest contactRequest) {
+        Contact updatedContact = createContact(contactRequest, contactId);
+        saveNewContact(updatedContact);
+        return commonTasksService.showCustomResults(updatedContact, HttpStatus.OK);
+    }
+
+    private boolean editingParametersAreValid(Long contactId,
+                                              Long userId,
+                                              ContactRequest contactRequest) {
+        return contactBelongsToUser(contactId, userId) &&
+                contactRequestIsValid(contactRequest);
     }
 }

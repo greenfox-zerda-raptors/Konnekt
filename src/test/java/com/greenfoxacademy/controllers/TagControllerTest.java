@@ -15,13 +15,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import static junit.framework.TestCase.assertTrue;
@@ -34,9 +37,11 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
+@TestExecutionListeners(value = TransactionalTestExecutionListener.class)
 @ContextConfiguration(classes = KonnektApplication.class, loader = SpringBootContextLoader.class)
 @ActiveProfiles(Profiles.TEST)
-public class TagControllerTest {
+@Transactional
+public class TagControllerTest extends AbstractJUnit4SpringContextTests {
 
     private MockMvc mockMvc;
 
@@ -71,7 +76,7 @@ public class TagControllerTest {
     }
 
     @Test
-    public void instantiateTagControllerTest(){
+    public void instantiateTagControllerTest() {
         TagController tagController = new TagController(null, null);
         assertTrue(tagController != null);
     }
