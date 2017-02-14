@@ -114,7 +114,8 @@ public class ContactService {
 
     public boolean contactBelongsToUser(Long contactId, Long userId) {
         return contactExists(contactId) &&
-                contactIdMatchesUserId(contactId, userId);
+                (contactIdMatchesUserId(contactId, userId) ||
+                        userService.userIsAdmin(userId));
     }
 
     private boolean contactIdMatchesUserId(Long contactId, Long userId) {
