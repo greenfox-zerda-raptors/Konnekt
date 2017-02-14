@@ -3,6 +3,7 @@ package com.greenfoxacademy.service;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.responses.UserRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -114,4 +115,7 @@ public class UserService {
         save(user);
     }
 
+    public boolean userIsAdmin(Long userId) {
+        return userRepository.findOne(userId).getUserRole().equals(UserRoles.ADMIN);
+    }
 }
