@@ -65,6 +65,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Autowired
     private SessionRepository sessionRepository;
 
+    TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+    String validTestJson = createTestJson(validTestContact);
 
     @Before
     public void setup() throws Exception {
@@ -72,6 +74,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
         contactService.emptyRepositoryBeforeTest();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
+        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
+        contactRepository.save(testcontact);
     }
 
     @Test
@@ -85,8 +89,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void addContactWithValidData() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
         mockMvc.perform(post("/contacts")
                 .header("session_token", "abcde")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -97,9 +99,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void addContactWithoutToken() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
         mockMvc.perform(post("/contacts")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
@@ -108,9 +107,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void addContactWithWrongToken() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
         mockMvc.perform(post("/contacts")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", "wrong")
@@ -140,9 +136,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void updateContactWithValidData() throws Exception {
-
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
         Long contactId = contactService.findContactByName("John Doe").getId();
 
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
@@ -158,8 +151,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void updateContactWithoutToken() throws Exception {
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
         Long contactId = contactService.findContactByName("John Doe").getId();
 
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
@@ -171,8 +162,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void updateContactWithWrongToken() throws Exception {
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
         Long contactId = contactService.findContactByName("John Doe").getId();
 
 
@@ -186,8 +175,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void deleteContact() throws Exception {
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
         Long contactId = contactService.findContactByName("John Doe").getId();
         mockMvc.perform(delete("/contact/{id}", contactId)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -200,8 +187,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void deleteContactWithWrongToken() throws Exception {
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
         Long contactId = contactService.findContactByName("John Doe").getId();
         mockMvc.perform(delete("/contact/{id}", contactId)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -220,9 +205,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void badRequestPut() throws Exception {
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
-
         mockMvc.perform(put("/contact/1")
                 .header("session_token", "abcde")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -241,8 +223,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void contactIdGet() throws Exception {
         int id = 1;
-        Contact testcontact = new Contact(userService.findUserById(1L), "Pista bá", "Fúr, farag");
-        contactRepository.save(testcontact);
         mockMvc.perform(get("/contact/{id}", id)
                 .header("session_token", "abcde"))
                 .andExpect(status().isOk());
@@ -260,8 +240,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void deleteContactWithoutToken() throws Exception {
-        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
-        contactRepository.save(testcontact);
         Long contactId = contactService.findContactByName("John Doe").getId();
 
         mockMvc.perform(delete("/contact/{id}", contactId)
