@@ -4,6 +4,8 @@ import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.requests.AuthRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -71,10 +73,10 @@ public class UserService {
     }
 
     public boolean passwordAndEmailMatch(AuthRequest request) {
-        return findUserByEmail(request
-                .getEmail())
-                .getPassword()
-                .equals(encryptPassword(request.getPassword())); // here you should hash the received pw
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        return passwordEncoder.matches(request.getPassword(), findUserByEmail(request.getEmail()).getPassword());
+
+        // here you should hash the received pw
     }
 
     public User findUserById(Long userId) {
@@ -98,12 +100,10 @@ public class UserService {
 
     public String encryptPassword(String rawPassword) {
         try {
-            byte[] bytesOfMessage = rawPassword.getBytes("UTF-8");
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] thedigest = md.digest(bytesOfMessage);
-            BigInteger bigInt = new BigInteger(1, thedigest);
-            return bigInt.toString(16);
-        } catch (Exception e) {
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            return passwordEncoder.encode(rawPassword);
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return "";
         }
