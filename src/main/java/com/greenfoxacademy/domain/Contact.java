@@ -2,16 +2,11 @@ package com.greenfoxacademy.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.gson.Gson;
-import com.greenfoxacademy.bodies.ContactBody;
 import lombok.*;
 
-import java.util.Set;
-
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Jade Team on 2017.01.24..
@@ -50,5 +45,11 @@ public class Contact {
     @Column(name = "contact_description")
     @Getter
     private String description;
+
+    public Contact(User user, String name, String description) {
+        this.user = user;
+        this.name = name;
+        this.description = description;
+    }
 
 }

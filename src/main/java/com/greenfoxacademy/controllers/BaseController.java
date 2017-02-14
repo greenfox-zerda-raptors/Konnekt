@@ -13,9 +13,12 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @RestController
-@CrossOrigin(origins = {"https://lasers-cornubite-konnekt.herokuapp.com", "http://localhost:8080"},
-        methods = {RequestMethod.POST, RequestMethod.DELETE, RequestMethod.PUT, RequestMethod.OPTIONS},
-        exposedHeaders="session_token")
+@CrossOrigin(origins = {"https://lasers-cornubite-konnekt.herokuapp.com",
+        "http://localhost:8080",
+        "http://localhost:3000"},
+        methods = {RequestMethod.POST, RequestMethod.DELETE, RequestMethod.GET, RequestMethod.PUT, RequestMethod.OPTIONS},
+        exposedHeaders = "session_token",
+        allowedHeaders = "*")
 public @interface BaseController {
 
 }
