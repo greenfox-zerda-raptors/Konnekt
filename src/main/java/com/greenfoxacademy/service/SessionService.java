@@ -5,6 +5,7 @@ import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.GenericTokenRepository;
 import com.greenfoxacademy.repository.SessionRepository;
 import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.responses.UserRoles;
 import com.sendgrid.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -54,6 +55,10 @@ public class SessionService {
                 .getId();
     }
 
+    public String obtainUserRoleFromToken(String token) {
+        return sessionRepository.findOne(token).getUser().getUserRole();
+    }
+
     public HttpHeaders generateHeaders() {
         HttpHeaders responseHeaders = new HttpHeaders();
         URI location = URI.create("https://raptor-konnekt.herokuapp.com");
@@ -67,18 +72,23 @@ public class SessionService {
         return responseHeadersWithToken;
     }
 
-    public int sessionIsValid(HttpHeaders headers) {
+    public int sessionIsValid(HttpHeaders headers, boolean requireAdmin) {
         String token = headers.getFirst("session_token");
-        return sessionTokenIsValid(token, sessionRepository);
+        return sessionTokenIsValid(token, sessionRepository, requireAdmin);
     }
 
-    public int sessionTokenIsValid(String token, GenericTokenRepository repository) { //TODO possibly implement this using lambdas
+    public int sessionTokenIsValid(String token, GenericTokenRepository repository, boolean requireAdmin) { //TODO possibly implement this using lambdas
         if (token == null) {
             return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
         } else if (!tokenExists(token, repository)) {
             return AuthCodes.SESSION_TOKEN_NOT_REGISTERED;
         } else if (!tokenIsNotExpired(token, repository)) {
             return AuthCodes.SESSION_TOKEN_EXPIRED;
+        }
+        if (requireAdmin) {
+            return (obtainUserRoleFromToken(token).equals(UserRoles.ADMIN)) ?
+                    AuthCodes.OK :
+                    AuthCodes.INSUFFICIENT_PRIVILEGES;
         }
         return AuthCodes.OK;
     }

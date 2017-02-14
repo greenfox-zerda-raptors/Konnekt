@@ -34,7 +34,7 @@ public class ContactController {
     @PostMapping("/contacts")
     public ResponseEntity addNewContact(@RequestBody ContactRequest contactRequest,
                                         @RequestHeader HttpHeaders headers) throws Exception {
-        int authresult = authIsSuccessful(headers);
+        int authresult = authIsSuccessful(headers, false);
         return (authresult == AuthCodes.OK) ?
                 showAddingResults(contactRequest) :
                 respondWithNotAuthenticated(authresult);
@@ -56,7 +56,7 @@ public class ContactController {
 
     @GetMapping("/contacts")
     public ResponseEntity listAllContacts(@RequestHeader HttpHeaders headers) {
-        int authresult = authIsSuccessful(headers);
+        int authresult = authIsSuccessful(headers, false);
         return (authresult == AuthCodes.OK) ?
                 showContacts() :
                 respondWithNotAuthenticated(authresult);
@@ -73,7 +73,7 @@ public class ContactController {
     @DeleteMapping("/contact/{id}")
     public ResponseEntity deleteContact(@PathVariable("id") Long contactId,
                                         @RequestHeader HttpHeaders headers) {
-        int authresult = authIsSuccessful(headers);
+        int authresult = authIsSuccessful(headers, false);
         return (authresult == AuthCodes.OK) ?
                 showDeletingResults(contactId, headers) :
                 respondWithNotAuthenticated(authresult);
@@ -99,7 +99,7 @@ public class ContactController {
     public ResponseEntity editContact(@PathVariable("id") Long contactId,
                                       @RequestBody ContactRequest contactRequest,
                                       @RequestHeader HttpHeaders headers) throws Exception {
-        int authresult = authIsSuccessful(headers);
+        int authresult = authIsSuccessful(headers, false);
         return (authresult == AuthCodes.OK) ?
                 showEditingResults(contactId, headers, contactRequest) :
                 respondWithNotAuthenticated(authresult);
@@ -108,7 +108,7 @@ public class ContactController {
     @GetMapping("/contact/{id}")
     public ResponseEntity getSingleContact(@PathVariable("id") Long contactId,
                                            @RequestHeader HttpHeaders headers) throws Exception {
-        int authresult = authIsSuccessful(headers);
+        int authresult = authIsSuccessful(headers, false);
         return (authresult == AuthCodes.OK) ?
                 showSingleContact(contactId) :
                 respondWithNotAuthenticated(authresult);
@@ -150,8 +150,8 @@ public class ContactController {
                 contactService.contactRequestIsValid(contactRequest);
     }
 
-    private int authIsSuccessful(HttpHeaders headers) {
-        return sessionService.sessionIsValid(headers);
+    private int authIsSuccessful(HttpHeaders headers, boolean requireAdmin) {
+        return sessionService.sessionIsValid(headers, requireAdmin);
     }
 
     private Long obtainUserId(HttpHeaders headers) {

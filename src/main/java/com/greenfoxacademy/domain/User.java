@@ -42,7 +42,13 @@ public class User {
         this.username = "";
     }
 
-    public String toString(){
+    public User(String username, String password, boolean enabled, String userRole) {
+        this.username = username;
+        this.password = password;
+        this.userRole = userRole;
+    }
+
+    public String toString() {
         return "{"
                 + "\n\"id\":" + id + ","
                 + "\n\"name\":" + username + ","

@@ -84,7 +84,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
-        token = forgotPasswordService.generateToken();
+        this.token = forgotPasswordService.generateToken();
         forgotPasswordRepository.save(new ForgotPasswordToken(token, userRepository.findOne(1L)));
     }
 
@@ -181,8 +181,8 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         sessionList.add(userIdSessionToken);
         sessionList.add(manualSessionToken);
         sessionRepository.save(sessionList);
-        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository));
-        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository));
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository, false));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository, false));
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("session_token", userIdSessionToken.getToken());
         assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
@@ -213,8 +213,8 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         forgotList.add(manualToken);
         forgotPasswordRepository.save(forgotList);
 
-        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(forgotToken.getToken(), forgotPasswordRepository));
-        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredToken.getToken(), forgotPasswordRepository));
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(forgotToken.getToken(), forgotPasswordRepository, false));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredToken.getToken(), forgotPasswordRepository, false));
         assertEquals(1L, (long) forgotPasswordService.findUserByToken(userIdToken.getToken()).getId());
         assertEquals(userService.findUserById(1L), forgotPasswordService.findUserByToken(tokenString));
 

@@ -1,7 +1,6 @@
 package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.domain.Tag;
-import com.greenfoxacademy.repository.TagRepository;
 import com.greenfoxacademy.responses.AuthCodes;
 import com.greenfoxacademy.responses.Error;
 import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
@@ -34,7 +33,7 @@ public class TagController {
     }
 
     @GetMapping("/tags")
-    public ResponseEntity listTag(@RequestHeader  HttpHeaders headers) {
+    public ResponseEntity listTag(@RequestHeader HttpHeaders headers) {
         int authResult = authIsSuccessful(headers);
         return (authResult == AuthCodes.OK) ?
                 showTags() :
@@ -55,7 +54,7 @@ public class TagController {
 
     // TODO move this to a separate class
     private int authIsSuccessful(HttpHeaders headers) {
-        return sessionService.sessionIsValid(headers);
+        return sessionService.sessionIsValid(headers, false);
     }
 
     // TODO move this to a separate class

@@ -2,6 +2,7 @@ package com.greenfoxacademy.responses;
 
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.service.ForgotPasswordService;
+import com.greenfoxacademy.service.UserService;
 
 /**
  * Created by BSoptei on 2/2/2017.
@@ -9,6 +10,10 @@ import com.greenfoxacademy.service.ForgotPasswordService;
 public class NotAuthenticatedErrorResponse extends ErrorResponse {
     public NotAuthenticatedErrorResponse(ForgotPasswordService forgotPasswordService) {
         super(forgotPasswordService);
+    }
+
+    public NotAuthenticatedErrorResponse(UserService userService) {
+        super(userService);
     }
 
     public NotAuthenticatedErrorResponse(Error error) {
@@ -26,6 +31,8 @@ public class NotAuthenticatedErrorResponse extends ErrorResponse {
             case AuthCodes.SESSION_TOKEN_EXPIRED:
                 errors.add(new Error("Authentication error", "Session token expired."));
                 break;
+            case AuthCodes.INSUFFICIENT_PRIVILEGES:
+                errors.add(new Error("Authentication error", "You do not have the required user privileges to access this resource"));
         }
     }
 

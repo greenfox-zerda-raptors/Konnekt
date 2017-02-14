@@ -51,7 +51,7 @@ public class ForgotPasswordController {
     @GetMapping("/resetpassword")
     @ResponseBody
     public ResponseEntity getResetPassword(@RequestParam String token) {
-        int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository);
+        int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository, false);
         if (authResult == AuthCodes.OK) {
             User activeUser = forgotPasswordService.findUserByToken(token);
             return new ResponseEntity<>(new UserResponse(activeUser.getId()),
@@ -69,7 +69,7 @@ public class ForgotPasswordController {
     @PostMapping("/resetpassword")
     @ResponseBody
     public ResponseEntity resetPassword(@RequestParam String token, @RequestBody AuthRequest authRequest) {
-        int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository);
+        int authResult = sessionService.sessionTokenIsValid(token, forgotPasswordRepository, false);
         if (authResult == AuthCodes.OK) { //TODO clean up this branching statement
             if (userService.passwordsMatch(authRequest)) {
                 User activeUser = forgotPasswordService.findUserByToken(token);

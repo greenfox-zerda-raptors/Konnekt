@@ -74,8 +74,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
         contactService.emptyRepositoryBeforeTest();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
-        validTestJson = createTestJson(validTestContact);
         validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+        validTestJson = createTestJson(validTestContact);
         Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
         contactRepository.save(testcontact);
     }

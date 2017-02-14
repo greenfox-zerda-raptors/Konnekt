@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.util.List;
 
 /**
  * Created by JadeTeam on 1/19/2017. Communicates with UserRepository
@@ -117,5 +118,9 @@ public class UserService {
 
     public boolean userIsAdmin(Long userId) {
         return userRepository.findOne(userId).getUserRole().equals(UserRoles.ADMIN);
+    }
+
+    public List<User> obtainAllUsers() {
+        return userRepository.findAll();
     }
 }
