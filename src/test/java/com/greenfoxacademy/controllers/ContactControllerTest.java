@@ -65,8 +65,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Autowired
     private SessionRepository sessionRepository;
 
-    TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-    String validTestJson = createTestJson(validTestContact);
+    private TestContact validTestContact;
+    private String validTestJson;
 
     @Before
     public void setup() throws Exception {
@@ -74,6 +74,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
         contactService.emptyRepositoryBeforeTest();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
+        validTestJson = createTestJson(validTestContact);
+        validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
         contactRepository.save(testcontact);
     }
