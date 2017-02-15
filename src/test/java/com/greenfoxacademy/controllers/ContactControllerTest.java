@@ -66,12 +66,16 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Autowired
     private SessionRepository sessionRepository;
 
+    TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
+    String validTestJson = createTestJson(validTestContact);
 
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
+        Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
+        contactRepository.save(testcontact);
     }
 
     @Test
@@ -85,8 +89,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void addContactWithValidData() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
         mockMvc.perform(post("/contacts")
                 .header("session_token", "abcde")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -97,9 +99,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void addContactWithoutToken() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
         mockMvc.perform(post("/contacts")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
@@ -108,9 +107,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void addContactWithWrongToken() throws Exception {
-        TestContact validTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
         mockMvc.perform(post("/contacts")
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", "wrong")
@@ -140,12 +136,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void updateContactWithValidData() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
         Long contactId = contactService.findContactByName("John Doe").getId();
 
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
@@ -161,13 +151,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void updateContactWithoutToken() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
-
         Long contactId = contactService.findContactByName("John Doe").getId();
 
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
@@ -179,14 +162,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void updateContactWithWrongToken() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
-
         Long contactId = contactService.findContactByName("John Doe").getId();
+
 
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         String updateJson = createTestJson(updatedTestContact);
@@ -198,12 +175,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void deleteContact() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
         Long contactId = contactService.findContactByName("John Doe").getId();
         mockMvc.perform(delete("/contact/{id}", contactId)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -216,12 +187,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void deleteContactWithWrongToken() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
         Long contactId = contactService.findContactByName("John Doe").getId();
         mockMvc.perform(delete("/contact/{id}", contactId)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -240,61 +205,47 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
 
     @Test
     public void badRequestPut() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
-
         mockMvc.perform(put("/contact/1")
                 .header("session_token", "abcde")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void unauthenticatedContactIdGet() throws Exception {
+        int id = 1;
+        mockMvc.perform(get("/contact/{id}", id)
+                .header("session_token", "abcdefgéééééééééééé"))
+                .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    public void contactIdGet() throws Exception {
+        int id = 1;
+        mockMvc.perform(get("/contact/{id}", id)
+                .header("session_token", "abcde"))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void invalidContactIdGet() throws Exception {
+        int id = -1;
+        mockMvc.perform(get("/contact/{id}", id)
+                .header("session_token", "abcde"))
+                .andExpect(status().isNotFound());
+
+    }
 
     @Test
     public void deleteContactWithoutToken() throws Exception {
-        TestContact validTestContact = new TestContact("John Doe", "FOOBAR", 1L);
-        String validTestJson = createTestJson(validTestContact);
-
-        mockMvc.perform(post("/contacts")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
         Long contactId = contactService.findContactByName("John Doe").getId();
+
         mockMvc.perform(delete("/contact/{id}", contactId)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void deleteContactWithWrongUser() throws Exception {
-        User user2 = new User();
-        user2.setEmail("user2@user.com");
-        user2.setPassword("user2");
-        userRepository.save(user2);
-        Session session2 = new Session("fghi", userService.findUserById(2L));
-        sessionService.saveSession(session2);
-
-        Contact validContact = new Contact();
-        validContact.setUser(user2);
-        validContact.setName("John Doe");
-        validContact.setDescription("Foobar");
-        contactRepository.save(validContact);
-        // String validTestJson = createTestJson(validContact);
-
-//        mockMvc.perform(post("/contacts")
-//                .header("session_token", "abcde")
-//                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
-        Long contactId = contactService.findContactByName("John Doe").getId();
-        mockMvc.perform(delete("/contact/{id}", contactId)
-                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
-                .header("session_token", "abcde")
-                .contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isBadRequest());
-
     }
 
     private String createTestJson(TestContact testContact) {
