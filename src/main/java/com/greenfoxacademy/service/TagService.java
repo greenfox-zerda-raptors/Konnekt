@@ -15,16 +15,13 @@ import java.util.List;
  * Created by BSoptei on 2/7/2017.
  */
 @Service
-public class TagService {
+public class TagService extends BaseService {
 
     private TagRepository tagRepository;
-    private CommonTasksService commonTasksService;
 
     @Autowired
-    public TagService(TagRepository tagRepository,
-                      CommonTasksService commonTasksService){
+    public TagService(TagRepository tagRepository){
         this.tagRepository = tagRepository;
-        this.commonTasksService = commonTasksService;
     }
 
     public List<Tag> findTagsByString(String tagsRaw) {
@@ -66,7 +63,7 @@ public class TagService {
         for (Tag tag : allTags) {
             tagsResponse.getTags().add(tag.getTagName());
         }
-        return commonTasksService.showCustomResults(tagsResponse, HttpStatus.OK);
+        return showCustomResults(tagsResponse, HttpStatus.OK);
     }
 
 }

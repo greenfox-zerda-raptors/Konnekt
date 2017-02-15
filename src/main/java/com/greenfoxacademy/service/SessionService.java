@@ -1,8 +1,8 @@
 package com.greenfoxacademy.service;
 
+import com.greenfoxacademy.domain.GenericToken;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.repository.GenericTokenRepository;
 import com.greenfoxacademy.repository.SessionRepository;
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.responses.*;
@@ -19,24 +19,22 @@ import java.net.URI;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.function.Function;
 
 /**
  * Created by Lenovo on 1/31/2017.
  */
 @Service
-public class SessionService {
+public class SessionService extends BaseService {
     private final SessionRepository sessionRepository;
     private SecureRandom random = new SecureRandom();
     private UserService userService;
-    private CommonTasksService commonTasksService;
 
     @Autowired
     public SessionService(SessionRepository sessionRepository,
-                          UserService userService,
-                          CommonTasksService commonTasksService) {
+                          UserService userService) {
         this.sessionRepository = sessionRepository;
         this.userService = userService;
-        this.commonTasksService = commonTasksService;
     }
 
     public Session createSession(User currentUser) {
@@ -53,8 +51,8 @@ public class SessionService {
         sessionRepository.save(currentSession);
     }
 
-    public boolean tokenExists(String token, GenericTokenRepository repository) {
-        return repository.findOne(token) != null;
+    public boolean tokenExists(String token, Function<String,GenericToken> findFunction) {
+        return findFunction.apply(token) != null;
     }
 
     public Long obtainUserIdFromHeaderToken(HttpHeaders headers) {
@@ -79,23 +77,23 @@ public class SessionService {
 
     public int sessionIsValid(HttpHeaders headers) {
         String token = headers.getFirst("session_token");
-        return sessionTokenIsValid(token, sessionRepository);
+        return sessionTokenIsValid(token, sessionRepository::findOne);
     }
 
-    public int sessionTokenIsValid(String token, GenericTokenRepository repository) { //TODO possibly implement this using lambdas
+    public int sessionTokenIsValid(String token, Function<String,GenericToken> findFunction) {
         if (token == null) {
             return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
-        } else if (!tokenExists(token, repository)) {
+        } else if (!tokenExists(token, findFunction)) {
             return AuthCodes.SESSION_TOKEN_NOT_REGISTERED;
-        } else if (!tokenIsNotExpired(token, repository)) {
+        } else if (tokenIsExpired(token, findFunction)) {
             return AuthCodes.SESSION_TOKEN_EXPIRED;
         }
         return AuthCodes.OK;
     }
 
-    private boolean tokenIsNotExpired(String token, GenericTokenRepository repository) {
+    private boolean tokenIsExpired(String token, Function<String, GenericToken> findFunction) {
         Date currentTime = new Date();
-        return (currentTime.before(repository.findOne(token).getValid()));
+        return (currentTime.after(findFunction.apply(token).getValid()));
     }
 
     Response generateEmptyResponse() {
@@ -107,7 +105,6 @@ public class SessionService {
     }
 
     public ResponseEntity generateSuccessfulLogin(AuthRequest request) {
-
         return showSuccessfulAuthResults(userService.findUserByEmail(request.getEmail()));
     }
 
@@ -119,7 +116,7 @@ public class SessionService {
     }
 
     public ResponseEntity generateLoginError(AuthRequest request) {
-        return commonTasksService.showCustomResults(crateLoginErrorResponse(request), HttpStatus.UNAUTHORIZED);
+        return showCustomResults(crateLoginErrorResponse(request), HttpStatus.UNAUTHORIZED);
     }
 
     private LoginErrorResponse crateLoginErrorResponse(AuthRequest request) {
@@ -134,7 +131,7 @@ public class SessionService {
     }
 
     public ResponseEntity generateRegistrationError(AuthRequest request) {
-        return commonTasksService.showCustomResults(createErrorResponse(request), HttpStatus.FORBIDDEN);
+        return showCustomResults(createErrorResponse(request), HttpStatus.FORBIDDEN);
     }
 
     private RegistrationErrorResponse createErrorResponse(AuthRequest request) {

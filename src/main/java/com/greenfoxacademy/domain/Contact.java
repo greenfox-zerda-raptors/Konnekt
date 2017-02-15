@@ -22,7 +22,7 @@ import java.util.HashSet;
 @Setter
 @JsonSerialize
 @NoArgsConstructor
-@ToString
+//@ToString
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,

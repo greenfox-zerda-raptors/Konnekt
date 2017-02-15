@@ -26,7 +26,7 @@ public class RegistrationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody AuthRequest request) throws IOException {
+    public ResponseEntity register(@RequestBody AuthRequest request) {
         return (userService.registrationIsValid(request)) ?
                 sessionService.generateSuccessfulRegistration(request):
                 sessionService.generateRegistrationError(request);

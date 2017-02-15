@@ -23,12 +23,11 @@ import java.util.Arrays;
 import java.util.Date;
 
 @Service
-public class ForgotPasswordService {
+public class ForgotPasswordService extends BaseService {
 
     private ForgotPasswordRepository forgotPasswordRepository;
     private Environment env;
     private SessionService sessionService;
-    private CommonTasksService commonTasksService;
     private UserService userService;
     private final String EMAIL_PROBLEM = "There was a problem sending your email, please try again later.";
 
@@ -36,12 +35,10 @@ public class ForgotPasswordService {
     public ForgotPasswordService(ForgotPasswordRepository forgotPasswordRepository,
                                  Environment env,
                                  SessionService sessionService,
-                                 CommonTasksService commonTasksService,
                                  UserService userService) {
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.env = env;
         this.sessionService = sessionService;
-        this.commonTasksService = commonTasksService;
         this.userService = userService;
     }
 
@@ -105,7 +102,7 @@ public class ForgotPasswordService {
                                                     String token) {
         return (userService.passwordsMatch(authRequest)) ?
                 showOKForgotPasswordResults(authRequest, token):
-                commonTasksService.respondWithBadRequest(createErrorResponse(authRequest));
+                respondWithBadRequest(createErrorResponse(authRequest));
     }
 
     private ResponseEntity showOKForgotPasswordResults(AuthRequest authRequest,
@@ -113,15 +110,15 @@ public class ForgotPasswordService {
         User activeUser = findUserByToken(token);
         userService.setUserPassword(activeUser, userService.encryptPassword(authRequest.getPassword()));
         deleteToken(token);
-        return commonTasksService.showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
+        return showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
     }
 
     public ResponseEntity generateForgotPasswordSuccess(User user) {
         String token = saveToken(generateToken(), user);
         int responseStatus = sendEmail(findToken(token));
         return (responseStatus == 202) ?
-                commonTasksService.showCustomResults("Email sent.", HttpStatus.ACCEPTED):
-                commonTasksService.showCustomResults(EMAIL_PROBLEM, HttpStatus.SERVICE_UNAVAILABLE);
+                showCustomResults("Email sent.", HttpStatus.ACCEPTED):
+                showCustomResults(EMAIL_PROBLEM, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     private PasswordResetErrorResponse createErrorResponse(AuthRequest request) { //TODO standardize responses and stop using authrequest (also put that into future spec)
@@ -131,15 +128,19 @@ public class ForgotPasswordService {
         return errorResponse;
     }
 
-    public PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) { //TODO unify overloaded methods with lambda or similar
+    private PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) { //TODO unify overloaded methods with lambda or similar
         PasswordResetErrorResponse errorResponse =
                 new PasswordResetErrorResponse(userService);
         errorResponse.addErrorMessagesForForgotRequest(request);
         return errorResponse;
     }
 
-    public ResponseEntity generateForgotPasswordError(PasswordResetErrorResponse passwordResetErrorResponse) {
-        return commonTasksService.respondWithBadRequest(passwordResetErrorResponse);
+    public ResponseEntity generateForgotPasswordError(ForgotPasswordRequest request) {
+        return respondWithBadRequest(createErrorResponse(request));
+    }
+
+    public int sessionTokenIsValid(String token) {
+        return sessionService.sessionTokenIsValid(token,forgotPasswordRepository::findOne);
     }
 
 }

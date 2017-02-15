@@ -10,15 +10,15 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 
 /**
- * Created by BSoptei on 2/13/2017.
+ * Created by BSoptei on 2/15/2017.
  */
 @Service
-public class CommonTasksService {
-
+public class BaseService {
 
     private final NotAuthenticatedErrorResponse notAuthResponse =
             new NotAuthenticatedErrorResponse(
                     new Error("Authentication error", "Not authenticated"));
+
 
 
     public ResponseEntity respondWithNotAuthenticated(int authResult) {

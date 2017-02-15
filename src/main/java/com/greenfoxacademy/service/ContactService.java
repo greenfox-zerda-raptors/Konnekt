@@ -22,12 +22,11 @@ import java.util.Set;
  * Created by Jade Team on 2017.01.24..
  */
 @Service
-public class ContactService {
+public class ContactService extends BaseService {
 
     private UserService userService;
     private ContactRepository contactRepository;
     private TagService tagService;
-    private CommonTasksService commonTasksService;
     private final BadRequestErrorResponse badFormat =
             new BadRequestErrorResponse(
                     new Error("Data error", "Data did not match required format."));
@@ -35,12 +34,10 @@ public class ContactService {
     @Autowired
     public ContactService(UserService userService,
                           ContactRepository contactRepository,
-                          TagService tagService,
-                          CommonTasksService commonTasksService) {
+                          TagService tagService) {
         this.userService = userService;
         this.contactRepository = contactRepository;
         this.tagService = tagService;
-        this.commonTasksService = commonTasksService;
     }
 
     private User obtainUserByName(String userName) {
@@ -157,47 +154,46 @@ public class ContactService {
     public ResponseEntity showAddingResults(ContactRequest contactRequest) {
         return (contactRequestIsValid(contactRequest)) ?
                 showAddingOKResults(contactRequest) :
-                commonTasksService.respondWithBadRequest(badFormat);
+                respondWithBadRequest(badFormat);
     }
 
     private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
         Contact newContact = createContact(contactRequest, null);
         saveNewContact(newContact);
-        return commonTasksService.showCustomResults(newContact, HttpStatus.CREATED);
+        return showCustomResults(newContact, HttpStatus.CREATED);
     }
 
     public ResponseEntity showContacts() {
         MultipleContactsResponse multipleContactsResponse =
                 new MultipleContactsResponse(obtainAllContacts());
-        return commonTasksService.showCustomResults(multipleContactsResponse, HttpStatus.OK);
+        return showCustomResults(multipleContactsResponse, HttpStatus.OK);
     }
     public ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers, Long userId) {
         return (contactBelongsToUser(contactId, userId)) ?
                 showDeletingOKResults(contactId) :
-                commonTasksService.respondWithBadRequest(badFormat);
+                respondWithBadRequest(badFormat);
     }
 
     private ResponseEntity showDeletingOKResults(Long contactId) {
         Contact contactToDelete = findContactById(contactId);
         ContactBody deletedContactInfo = new ContactBody(contactToDelete);
         deleteContact(contactId);
-        return commonTasksService.showCustomResults(deletedContactInfo, HttpStatus.OK);
+        return showCustomResults(deletedContactInfo, HttpStatus.OK);
     }
 
     public ResponseEntity showEditingResults(Long contactId,
-                                             HttpHeaders headers,
                                              ContactRequest contactRequest,
                                              Long userId) {
         return (editingParametersAreValid(contactId, userId, contactRequest)) ?
                 showEditingOKResults(contactId, contactRequest) :
-                commonTasksService.respondWithBadRequest(badFormat);
+                respondWithBadRequest(badFormat);
     }
 
     private ResponseEntity showEditingOKResults(Long contactId,
                                                 ContactRequest contactRequest) {
         Contact updatedContact = createContact(contactRequest, contactId);
         saveNewContact(updatedContact);
-        return commonTasksService.showCustomResults(updatedContact, HttpStatus.OK);
+        return showCustomResults(updatedContact, HttpStatus.OK);
     }
 
     private boolean editingParametersAreValid(Long contactId,
