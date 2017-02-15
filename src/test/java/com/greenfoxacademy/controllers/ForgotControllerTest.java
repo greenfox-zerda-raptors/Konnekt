@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -155,12 +157,12 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testResetPasswordPostWithValidRequest() throws Exception {
         String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
-        String encrypted = userService.encryptPassword("goodpassword");
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         mockMvc.perform(post("/resetpassword?token={token}", token)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isOk());
-        assertTrue(userService.findUserById(1L).getPassword().equals(encrypted));
+        assertTrue(passwordEncoder.matches("goodpassword", userService.findUserById(1L).getPassword()));
         assertFalse(sessionService.tokenExists(token, forgotPasswordRepository));
 
     }

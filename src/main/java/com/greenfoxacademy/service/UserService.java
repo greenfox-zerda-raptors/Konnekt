@@ -6,6 +6,9 @@ import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.responses.UserRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -16,14 +19,17 @@ import java.util.List;
  * Created by JadeTeam on 1/19/2017. Communicates with UserRepository
  */
 
+
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(User user) {
@@ -74,10 +80,9 @@ public class UserService {
     }
 
     public boolean passwordAndEmailMatch(AuthRequest request) {
-        return findUserByEmail(request
-                .getEmail())
-                .getPassword()
-                .equals(encryptPassword(request.getPassword())); // here you should hash the received pw
+        return passwordEncoder.matches(request.getPassword(), findUserByEmail(request.getEmail()).getPassword());
+
+        // here you should hash the received pw
     }
 
     public User findUserById(Long userId) {
@@ -101,12 +106,9 @@ public class UserService {
 
     public String encryptPassword(String rawPassword) {
         try {
-            byte[] bytesOfMessage = rawPassword.getBytes("UTF-8");
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] thedigest = md.digest(bytesOfMessage);
-            BigInteger bigInt = new BigInteger(1, thedigest);
-            return bigInt.toString(16);
-        } catch (Exception e) {
+            return passwordEncoder.encode(rawPassword);
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return "";
         }
