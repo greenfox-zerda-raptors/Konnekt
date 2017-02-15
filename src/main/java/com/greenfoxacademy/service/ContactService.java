@@ -42,7 +42,7 @@ public class ContactService {
     public Contact createContact(ContactRequest contactRequest, Long contactId) {
         Contact contact = (contactId == null) ?
                 new Contact() : contactRepository.findOne(contactId);
-        adjustContactProperties(contact, contactRequest);
+        adjustContactProperties(contact, contactRequest); //TODO unnecessary double set
         contact.setName(contactRequest.getName());
         contact.setDescription(contactRequest.getDescription());
         return contact;

@@ -120,7 +120,7 @@ public class ContactController {
             return new ResponseEntity<>(singleContact,
                     sessionService.generateHeaders(),
                     HttpStatus.OK);
-        } else return new ResponseEntity<>(new ContactNotFoundErrorResponse(),
+        } else return new ResponseEntity<>(new ItemNotFoundErrorResponse(ItemNotFoundErrorResponse.CONTACT),
                 sessionService.generateHeaders(),
                 HttpStatus.NOT_FOUND);
     }

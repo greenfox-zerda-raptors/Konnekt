@@ -3,6 +3,7 @@ package com.greenfoxacademy.service;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.responses.UserRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -122,5 +123,28 @@ public class UserService {
 
     public List<User> obtainAllUsers() {
         return userRepository.findAll();
+    }
+
+    public boolean adminEditIsValid(UserAdminResponse userAdminResponse, User user) {
+        return userAdminResponse.getUser_id() != null &&
+                userAdminResponse.getUser_id().equals(user.getId()) &&
+                userAdminResponse.getEmail() != null &&
+                userAdminResponse.getUserRole().equals(UserRoles.USER) ||
+                userAdminResponse.getUserRole().equals(UserRoles.ADMIN);
+    }
+
+    public void updateUser(UserAdminResponse userAdminResponse) throws Exception {
+        User user = userRepository.findOne(userAdminResponse.getUser_id());
+        if (user == null) {
+            throw new Exception("User with specified ID not found!");
+        } else {
+            user = userRepository.findOne(userAdminResponse.getUser_id());
+            user.setEmail(userAdminResponse.getEmail());
+            user.setFirstName(userAdminResponse.getFirstName());
+            user.setLastName(userAdminResponse.getLastName());
+            user.setUserRole(userAdminResponse.getUserRole());
+            user.setEnabled(userAdminResponse.isEnabled());
+            userRepository.save(user);
+        }
     }
 }

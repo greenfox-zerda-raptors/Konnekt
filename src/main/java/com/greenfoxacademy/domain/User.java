@@ -2,6 +2,7 @@ package com.greenfoxacademy.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.greenfoxacademy.responses.UserAdminResponse;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -46,6 +47,15 @@ public class User {
         this.username = username;
         this.password = password;
         this.userRole = userRole;
+        this.enabled = enabled;
+    }
+
+    public User(UserAdminResponse display) {
+        this.email = display.getEmail();
+        this.firstName = display.getFirstName();
+        this.lastName = display.getLastName();
+        this.userRole = display.getUserRole();
+        this.enabled = display.isEnabled();
     }
 
     public String toString() {
@@ -55,4 +65,5 @@ public class User {
                 + "\n\"email\":" + email
                 + "\n}";
     }
+
 }

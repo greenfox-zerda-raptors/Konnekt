@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.greenfoxacademy.domain.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,10 +16,12 @@ public class MultipleUserResponse {
     @JsonProperty
     private Integer count;
     @JsonProperty
-    private List<User> users;
+    private List<UserAdminResponse> users = new ArrayList<UserAdminResponse>();
 
     public MultipleUserResponse(List<User> users) {
-        this.users = users;
+        for (User u : users) {
+            this.users.add(new UserAdminResponse(u));
+        }
         this.count = users.size();
     }
 
