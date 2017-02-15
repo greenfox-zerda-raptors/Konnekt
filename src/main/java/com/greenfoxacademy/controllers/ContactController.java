@@ -1,11 +1,13 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.requests.ContactRequest;
 import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,6 +67,15 @@ public class ContactController {
                 contactService.showEditingResults(contactId,
                         contactRequest,
                         sessionService.obtainUserIdFromHeaderToken(headers)) :
+                contactService.respondWithNotAuthenticated(authResult);
+    }
+
+    @GetMapping("/contact/{id}")
+    public ResponseEntity getSingleContact(@PathVariable("id") Long contactId,
+                                           @RequestHeader HttpHeaders headers) throws Exception {
+        int authResult = sessionService.sessionIsValid(headers);
+        return (authResult == AuthCodes.OK) ?
+                contactService.showSingleContact(contactId) :
                 contactService.respondWithNotAuthenticated(authResult);
     }
 

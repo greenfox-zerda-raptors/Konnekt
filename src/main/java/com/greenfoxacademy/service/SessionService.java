@@ -27,7 +27,6 @@ import java.util.function.Function;
 @Service
 public class SessionService extends BaseService {
     private final SessionRepository sessionRepository;
-    private SecureRandom random = new SecureRandom();
     private UserService userService;
 
     @Autowired
@@ -43,9 +42,7 @@ public class SessionService extends BaseService {
         return currentSession;
     }
 
-    public String generateToken() {
-        return new BigInteger(130, random).toString(32);
-    }
+
 
     public void saveSession(Session currentSession) {
         sessionRepository.save(currentSession);

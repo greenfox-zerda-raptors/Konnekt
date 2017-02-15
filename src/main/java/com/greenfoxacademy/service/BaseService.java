@@ -7,13 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.net.URI;
+import java.security.SecureRandom;
 
 /**
  * Created by BSoptei on 2/15/2017.
  */
 @Service
 public class BaseService {
+    private SecureRandom random = new SecureRandom();
 
     private final NotAuthenticatedErrorResponse notAuthResponse =
             new NotAuthenticatedErrorResponse(
@@ -52,5 +55,9 @@ public class BaseService {
         HttpHeaders responseHeadersWithToken = generateHeaders();
         responseHeadersWithToken.set("session_token", token);
         return responseHeadersWithToken;
+    }
+
+    public String generateToken() {
+        return new BigInteger(130, random).toString(32);
     }
 }

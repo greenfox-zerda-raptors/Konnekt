@@ -7,6 +7,7 @@ import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.requests.ContactRequest;
 import com.greenfoxacademy.responses.BadRequestErrorResponse;
+import com.greenfoxacademy.responses.ContactNotFoundErrorResponse;
 import com.greenfoxacademy.responses.Error;
 import com.greenfoxacademy.responses.MultipleContactsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +42,9 @@ public class ContactService extends BaseService {
         this.contactRepository = contactRepository;
         this.tagService = tagService;
     }
+
+    @PersistenceContext(name = "default")
+    EntityManager em;
 
     private User obtainUserByName(String userName) {
         return userService.findUserByName(userName);
@@ -84,8 +90,8 @@ public class ContactService extends BaseService {
         }
     }
 
-    private void processCurrentTag(Contact contact, String tagName){
-        Tag currentTag = (tagExists(tagName))?
+    private void processCurrentTag(Contact contact, String tagName) {
+        Tag currentTag = (tagExists(tagName)) ?
                 tagService.findByTagName(tagName) : new Tag(tagName);
         tagService.saveTag(currentTag);
         if (!contact.getTags().contains(currentTag)) {
@@ -119,7 +125,8 @@ public class ContactService extends BaseService {
 
     public boolean contactBelongsToUser(Long contactId, Long userId) {
         return contactExists(contactId) &&
-                contactIdMatchesUserId(contactId, userId);
+                (contactIdMatchesUserId(contactId, userId) ||
+                        userService.userIsAdmin(userId));
     }
 
     private boolean contactIdMatchesUserId(Long contactId, Long userId) {
@@ -147,8 +154,11 @@ public class ContactService extends BaseService {
         return contactRepository.findByName(contactName);
     }
 
+
     public void emptyRepositoryBeforeTest() {
         contactRepository.deleteAll();
+        em.createNativeQuery("ALTER SEQUENCE contact_id_seq RESTART WITH 1")
+                .executeUpdate();
     }
 
     public ResponseEntity showAddingResults(ContactRequest contactRequest) {
@@ -201,5 +211,16 @@ public class ContactService extends BaseService {
                                               ContactRequest contactRequest) {
         return contactBelongsToUser(contactId, userId) &&
                 contactRequestIsValid(contactRequest);
+    }
+
+    public ResponseEntity showSingleContact(Long contactId) {
+        Contact singleContact = findContactById(contactId);
+        if (singleContact != null) {
+            return showCustomResults(singleContact,
+                                    HttpStatus.OK);
+        } else {
+            return showCustomResults(new ContactNotFoundErrorResponse(),
+                                    HttpStatus.NOT_FOUND);
+        }
     }
 }

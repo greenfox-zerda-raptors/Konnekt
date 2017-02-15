@@ -42,10 +42,7 @@ public class ForgotPasswordService extends BaseService {
         this.userService = userService;
     }
 
-    private SecureRandom random = new SecureRandom();
-
     private Email from = new Email("konnekt@heroku.com");
-
 
     public int sendEmail(ForgotPasswordToken forgotPasswordToken) {
         User user = forgotPasswordToken.getUser();
@@ -76,17 +73,13 @@ public class ForgotPasswordService extends BaseService {
         return response.statusCode;
     }
 
-    public String generateToken() {
-        return new BigInteger(130, random).toString(32);
-    }
-
     public String saveToken(String token, User user) {
         forgotPasswordRepository.save(new ForgotPasswordToken(token, user));
         return token;
     }
 
     public ForgotPasswordToken findToken(String token) {
-        return (ForgotPasswordToken) forgotPasswordRepository.findOne(token);
+        return forgotPasswordRepository.findOne(token);
     }
 
     public User findUserByToken(String token) {
@@ -96,7 +89,6 @@ public class ForgotPasswordService extends BaseService {
     public void deleteToken(String token) {
         forgotPasswordRepository.delete(token);
     }
-
 
     public ResponseEntity showForgotPasswordResults(AuthRequest authRequest,
                                                     String token) {

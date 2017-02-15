@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -155,18 +157,50 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testResetPasswordPostWithValidRequest() throws Exception {
         String testReset = createTestJson(new TestRegistration(userService.findUserById(1L).getEmail(), "goodpassword", "goodpassword"));
-        String encrypted = userService.encryptPassword("goodpassword");
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         mockMvc.perform(post("/resetpassword?token={token}", token)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isOk());
-        assertTrue(userService.findUserById(1L).getPassword().equals(encrypted));
+        assertTrue(passwordEncoder.matches("goodpassword", userService.findUserById(1L).getPassword()));
         assertFalse(sessionService.tokenExists(token, (string) -> forgotPasswordRepository.findOne(token)));
+
 
     }
 
     @Test
-    public void simpleTokenTests() {
+    public void sessionTokenTests() {
+        String tokenString = forgotPasswordService.generateToken();
+        Session sessionToken = new Session(5);
+        sessionToken.setToken(sessionService.generateToken());
+        Session expiredSessionToken = new Session(-5);
+        expiredSessionToken.setToken(sessionService.generateToken());
+        Session userIdSessionToken = new Session(userService.findUserById(1L), 5);
+        userIdSessionToken.setToken(sessionService.generateToken());
+        Session manualSessionToken = new Session(tokenString, userService.findUserById(1L), 5);
+        List<Session> sessionList = new LinkedList<>();
+        sessionList.add(sessionToken);
+        sessionList.add(expiredSessionToken);
+        sessionList.add(userIdSessionToken);
+        sessionList.add(manualSessionToken);
+        sessionRepository.save(sessionList);
+
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository::findOne));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository::findOne));
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("session_token", userIdSessionToken.getToken());
+        assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
+        httpHeaders.clear();
+        httpHeaders.set("session_token", tokenString);
+        assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
+        Date now = new Date();
+        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT() > 0);
+
+    }
+
+    @Test
+    public void forgotTokenTests() {
         ForgotPasswordToken forgotToken = new ForgotPasswordToken(5);
         forgotToken.setToken(forgotPasswordService.generateToken());
         ForgotPasswordToken expiredToken = new ForgotPasswordToken(-5);
@@ -175,41 +209,19 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         userIdToken.setToken(forgotPasswordService.generateToken());
         String tokenString = forgotPasswordService.generateToken();
         ForgotPasswordToken manualToken = new ForgotPasswordToken(tokenString, userService.findUserById(1L), 5);
-        Session sessionToken = new Session(5);
-        sessionToken.setToken(sessionService.generateToken());
-        Session expiredSessionToken = new Session(-5);
-        expiredSessionToken.setToken(sessionService.generateToken());
-        Session userIdSessionToken = new Session(userService.findUserById(1L), 5);
-        userIdSessionToken.setToken(sessionService.generateToken());
-        Session manualSessionToken = new Session(tokenString, userService.findUserById(1L), 5);
+
         List<ForgotPasswordToken> forgotList = new LinkedList<>();
         forgotList.add(forgotToken);
         forgotList.add(expiredToken);
         forgotList.add(userIdToken);
         forgotList.add(manualToken);
         forgotPasswordRepository.save(forgotList);
-        List<Session> sessionList = new LinkedList<>();
-        sessionList.add(sessionToken);
-        sessionList.add(expiredSessionToken);
-        sessionList.add(userIdSessionToken);
-        sessionList.add(manualSessionToken);
-        sessionRepository.save(sessionList);
-
         assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(forgotToken.getToken(), forgotPasswordRepository::findOne));
         assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredToken.getToken(), forgotPasswordRepository::findOne));
+
         assertEquals(1L, (long) forgotPasswordService.findUserByToken(userIdToken.getToken()).getId());
         assertEquals(userService.findUserById(1L), forgotPasswordService.findUserByToken(tokenString));
-        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository::findOne));
-        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository::findOne));
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set("session_token", userIdSessionToken.getToken());
-        assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
-        httpHeaders.clear();
-        httpHeaders.set("session_token", tokenString);
-        assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
-        Date now = new Date();
-//        assertTrue(now.after(sessionRepository.findOne(tokenString).getTimestamp()));
-        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT() > 0);
+
     }
 
     private String createTestJson(TestEmail testEmail) {
