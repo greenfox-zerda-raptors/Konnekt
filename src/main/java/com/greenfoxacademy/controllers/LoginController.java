@@ -21,41 +21,21 @@ import java.io.IOException;
 @BaseController
 public class LoginController {
 
-    private UserService userService;
     private SessionService sessionService;
+    private UserService userService;
 
     @Autowired
     public LoginController(UserService userService,
                            SessionService sessionService) {
-          this.userService = userService;
         this.sessionService = sessionService;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody AuthRequest request) throws IOException {
         return (userService.userLoginIsValid(request))?
-                generateSuccessfulLogin(request):
-                generateLoginError(request);
+                sessionService.generateSuccessfulLogin(request):
+                sessionService.generateLoginError(request);
     }
 
-    private ResponseEntity generateSuccessfulLogin(AuthRequest request) {
-        User currentUser = userService.findUserByEmail(request.getEmail());
-        Session currentSession = sessionService.createSession(currentUser);
-        return new ResponseEntity<>(new UserResponse(currentUser.getId()),
-                                    sessionService.generateHeadersWithToken(currentSession.getToken()),
-                                    HttpStatus.CREATED);
-    }
-
-    private ResponseEntity generateLoginError(AuthRequest request) {
-        return new ResponseEntity<>(crateErrorResponse(request),
-                                    sessionService.generateHeaders(),
-                                    HttpStatus.UNAUTHORIZED);
-    }
-
-    private LoginErrorResponse crateErrorResponse(AuthRequest request) {
-        LoginErrorResponse errorResponse =
-                new LoginErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
-    }
 }

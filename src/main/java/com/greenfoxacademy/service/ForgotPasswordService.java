@@ -4,38 +4,43 @@ import com.greenfoxacademy.config.Profiles;
 import com.greenfoxacademy.domain.ForgotPasswordToken;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ForgotPasswordRepository;
+import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.requests.ForgotPasswordRequest;
+import com.greenfoxacademy.responses.PasswordResetErrorResponse;
+import com.greenfoxacademy.responses.UserResponse;
 import com.sendgrid.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
 @Service
-public class ForgotPasswordService {
+public class ForgotPasswordService extends BaseService {
 
     private ForgotPasswordRepository forgotPasswordRepository;
     private Environment env;
     private SessionService sessionService;
+    private UserService userService;
+    private final String EMAIL_PROBLEM = "There was a problem sending your email, please try again later.";
 
     @Autowired
     public ForgotPasswordService(ForgotPasswordRepository forgotPasswordRepository,
                                  Environment env,
-                                 SessionService sessionService) {
+                                 SessionService sessionService,
+                                 UserService userService) {
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.env = env;
         this.sessionService = sessionService;
+        this.userService = userService;
     }
 
-    private SecureRandom random = new SecureRandom();
-
     private Email from = new Email("konnekt@heroku.com");
-
 
     public int sendEmail(ForgotPasswordToken forgotPasswordToken) {
         User user = forgotPasswordToken.getUser();
@@ -66,10 +71,6 @@ public class ForgotPasswordService {
         return response.statusCode;
     }
 
-    public String generateToken() {
-        return new BigInteger(130, random).toString(32);
-    }
-
     public String saveToken(String token, User user) {
         forgotPasswordRepository.save(new ForgotPasswordToken(token, user));
         return token;
@@ -86,4 +87,50 @@ public class ForgotPasswordService {
     public void deleteToken(String token) {
         forgotPasswordRepository.delete(token);
     }
+
+    public ResponseEntity showForgotPasswordResults(AuthRequest authRequest,
+                                                    String token) {
+        return (userService.passwordsMatch(authRequest)) ?
+                showOKForgotPasswordResults(authRequest, token) :
+                respondWithBadRequest(createErrorResponse(authRequest));
+    }
+
+    private ResponseEntity showOKForgotPasswordResults(AuthRequest authRequest,
+                                                       String token) {
+        User activeUser = findUserByToken(token);
+        userService.setUserPassword(activeUser, userService.encryptPassword(authRequest.getPassword()));
+        deleteToken(token);
+        return showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
+    }
+
+    public ResponseEntity generateForgotPasswordSuccess(User user) {
+        String token = saveToken(generateToken(), user);
+        int responseStatus = sendEmail(findToken(token));
+        return (responseStatus == 202) ?
+                showCustomResults("Email sent.", HttpStatus.ACCEPTED) :
+                showCustomResults(EMAIL_PROBLEM, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    private PasswordResetErrorResponse createErrorResponse(AuthRequest request) { //TODO standardize responses and stop using authrequest (also put that into future spec)
+        PasswordResetErrorResponse errorResponse =
+                new PasswordResetErrorResponse(userService);
+        errorResponse.addErrorMessages(request);
+        return errorResponse;
+    }
+
+    private PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) { //TODO unify overloaded methods with lambda or similar
+        PasswordResetErrorResponse errorResponse =
+                new PasswordResetErrorResponse(userService);
+        errorResponse.addErrorMessagesForForgotRequest(request);
+        return errorResponse;
+    }
+
+    public ResponseEntity generateForgotPasswordError(ForgotPasswordRequest request) {
+        return respondWithBadRequest(createErrorResponse(request));
+    }
+
+    public int sessionTokenIsValid(String token, boolean requireAdmin) {
+        return sessionService.sessionTokenIsValid(token, forgotPasswordRepository::findOne, requireAdmin);
+    }
+
 }

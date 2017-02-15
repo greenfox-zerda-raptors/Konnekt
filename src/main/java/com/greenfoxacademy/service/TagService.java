@@ -3,7 +3,10 @@ package com.greenfoxacademy.service;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.Tag;
 import com.greenfoxacademy.repository.TagRepository;
+import com.greenfoxacademy.responses.TagsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +15,7 @@ import java.util.List;
  * Created by BSoptei on 2/7/2017.
  */
 @Service
-public class TagService {
+public class TagService extends BaseService {
 
     private TagRepository tagRepository;
 
@@ -53,4 +56,14 @@ public class TagService {
     public void emptyRepositoryBeforeTest() {
         tagRepository.deleteAll();
     }
+
+    public ResponseEntity showTags() {
+        List<Tag> allTags = findAllTags();
+        TagsResponse tagsResponse = new TagsResponse();
+        for (Tag tag : allTags) {
+            tagsResponse.getTags().add(tag.getTagName());
+        }
+        return showCustomResults(tagsResponse, HttpStatus.OK);
+    }
+
 }
