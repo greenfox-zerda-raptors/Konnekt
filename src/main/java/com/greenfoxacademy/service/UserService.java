@@ -20,18 +20,13 @@ import java.security.MessageDigest;
 @Service
 public class UserService {
 
-    @Bean
-    private PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
     private final UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(User user) {
