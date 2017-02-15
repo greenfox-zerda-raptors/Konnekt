@@ -1,15 +1,12 @@
 package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.repository.SessionRepository;
-import com.greenfoxacademy.repository.UserRepository;
-import com.greenfoxacademy.responses.*;
-import com.greenfoxacademy.responses.Error;
+import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,15 +19,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private UserService userService;
-    private UserRepository userRepository;
-    private SessionRepository sessionRepository;
     private SessionService sessionService;
 
     @Autowired
-    public UserController(UserService userService, UserRepository userRepository, SessionRepository sessionRepository, SessionService sessionService) {
+    public UserController(UserService userService, SessionService sessionService) {
         this.userService = userService;
-        this.userRepository = userRepository;
-        this.sessionRepository = sessionRepository;
         this.sessionService = sessionService;
     }
 
@@ -38,12 +31,9 @@ public class UserController {
     public ResponseEntity showAllUsers(@RequestHeader HttpHeaders headers) {
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
-            MultipleUserResponse multipleUserResponse = new MultipleUserResponse(userService.obtainAllUsers());
-            return new ResponseEntity<>(multipleUserResponse,
-                    sessionService.generateHeaders(),
-                    HttpStatus.OK);
+            return userService.respondWithAllUsers();
         } else {
-            return respondWithUnauthorized(authResult);
+            return userService.respondWithUnauthorized(authResult);
         }
 
 
@@ -55,16 +45,11 @@ public class UserController {
         User user = userService.findUserById(id);
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
-            return (user != null) ?
-                    new ResponseEntity<>(new UserAdminResponse(user),
-                            sessionService.generateHeaders(),
-                            HttpStatus.OK)
-                    : respondWithItemNotFound();
+            return userService.respondWithFoundOrNotFound(user);
         } else {
-            return respondWithUnauthorized(authResult);
+            return userService.respondWithUnauthorized(authResult);
         }
     }
-
 
     @PutMapping("users/{id}")
     public ResponseEntity editUser(@RequestHeader HttpHeaders headers,
@@ -73,47 +58,11 @@ public class UserController {
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
             User user = userService.findUserById(id);
-            return showEditingResults(userAdminResponse, user);
+            return userService.showEditingResults(userAdminResponse, user);
         } else {
-            return respondWithUnauthorized(authResult);
+            return userService.respondWithUnauthorized(authResult);
         }
     }
 
-    private ResponseEntity respondWithUnauthorized(int authResult) {
-        NotAuthenticatedErrorResponse response = new NotAuthenticatedErrorResponse(userService);
-        response.addErrorMessages(authResult);
-        return new ResponseEntity<>(response,
-                sessionService.generateHeaders(),
-                HttpStatus.UNAUTHORIZED);
-    }
 
-    private ResponseEntity respondWithItemNotFound() {
-        return new ResponseEntity<>(new ItemNotFoundErrorResponse(ItemNotFoundErrorResponse.USER),
-                sessionService.generateHeaders(),
-                HttpStatus.NOT_FOUND);
-    }
-
-    private ResponseEntity respondWithBadRequest() { //TODO this is the same as in contactcontroller
-        BadRequestErrorResponse badRequestErrorResponse =
-                new BadRequestErrorResponse(
-                        new Error("Data error", "Data did not match required format."));
-        return new ResponseEntity<>(badRequestErrorResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.BAD_REQUEST);
-    }
-
-    private ResponseEntity showEditingResults(UserAdminResponse userAdminResponse, User user) {
-        if (user != null) {
-            return (userService.adminEditIsValid(userAdminResponse, user)) ?
-                    showEditingOKResults(userAdminResponse) :
-                    respondWithBadRequest();
-        } else return respondWithItemNotFound();
-    }
-
-    private ResponseEntity showEditingOKResults(UserAdminResponse userAdminResponse) {
-        userService.updateUser(userAdminResponse);
-        return new ResponseEntity<>(userAdminResponse,
-                sessionService.generateHeaders(),
-                HttpStatus.OK);
-    }
 }

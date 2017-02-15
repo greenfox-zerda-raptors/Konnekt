@@ -3,9 +3,11 @@ package com.greenfoxacademy.service;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.requests.AuthRequest;
-import com.greenfoxacademy.responses.UserAdminResponse;
-import com.greenfoxacademy.responses.UserRoles;
+import com.greenfoxacademy.responses.*;
+import com.greenfoxacademy.responses.Error;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
+
+    @Autowired //TODO this is here because with a constructor autowire there would be a circular reference between UserService and SessionService
+    private SessionService sessionService;
 
     @PersistenceContext(name = "default")
     EntityManager em;
@@ -148,5 +153,64 @@ public class UserService {
     public void restartUserIdSeq() {
         em.createNativeQuery("ALTER SEQUENCE user_id_seq RESTART WITH 2")
                 .executeUpdate();
+    }
+
+    public ResponseEntity respondWithUnauthorized(int authResult) {
+        NotAuthenticatedErrorResponse response = new NotAuthenticatedErrorResponse();
+        response.addErrorMessages(authResult);
+        return new ResponseEntity<>(response,
+                sessionService.generateHeaders(),
+                HttpStatus.UNAUTHORIZED);
+    }
+
+    private ResponseEntity respondWithItemNotFound() {
+        return new ResponseEntity<>(new ItemNotFoundErrorResponse(ItemNotFoundErrorResponse.USER),
+                sessionService.generateHeaders(),
+                HttpStatus.NOT_FOUND);
+    }
+
+
+    private ResponseEntity respondWithBadRequest() { //TODO this is the same as in contactcontroller
+        BadRequestErrorResponse badRequestErrorResponse =
+                new BadRequestErrorResponse(
+                        new Error("Data error", "Data did not match required format."));
+        return new ResponseEntity<>(badRequestErrorResponse,
+                sessionService.generateHeaders(),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity showEditingResults(UserAdminResponse userAdminResponse, User user) {
+        if (user != null) {
+            return (adminEditIsValid(userAdminResponse, user)) ?
+                    showEditingOKResults(userAdminResponse) :
+                    respondWithBadRequest();
+        } else return respondWithItemNotFound();
+    }
+
+    private ResponseEntity showEditingOKResults(UserAdminResponse userAdminResponse) {
+        updateUser(userAdminResponse);
+        return new ResponseEntity<>(userAdminResponse,
+                sessionService.generateHeaders(),
+                HttpStatus.OK);
+    }
+
+    public ResponseEntity respondWithAllUsers() {
+        List<User> allUsers = obtainAllUsers();
+        MultipleUserResponse multipleUserResponse = new MultipleUserResponse(allUsers);
+        return new ResponseEntity<>(multipleUserResponse,
+                sessionService.generateHeaders(),
+                HttpStatus.OK);
+    }
+
+    private ResponseEntity respondWithSingleUser(User user) {
+        return new ResponseEntity<>(new UserAdminResponse(user),
+                sessionService.generateHeaders(),
+                HttpStatus.OK);
+    }
+
+    public ResponseEntity respondWithFoundOrNotFound(User user) {
+        return (user != null) ?
+                respondWithSingleUser(user)
+                : respondWithItemNotFound();
     }
 }

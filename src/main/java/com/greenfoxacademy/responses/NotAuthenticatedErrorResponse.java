@@ -2,18 +2,17 @@ package com.greenfoxacademy.responses;
 
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.service.ForgotPasswordService;
-import com.greenfoxacademy.service.UserService;
 
 /**
  * Created by BSoptei on 2/2/2017.
  */
 public class NotAuthenticatedErrorResponse extends ErrorResponse {
-    public NotAuthenticatedErrorResponse(ForgotPasswordService forgotPasswordService) {
-        super(forgotPasswordService);
+
+    public NotAuthenticatedErrorResponse() {
     }
 
-    public NotAuthenticatedErrorResponse(UserService userService) {
-        super(userService);
+    public NotAuthenticatedErrorResponse(ForgotPasswordService forgotPasswordService) {
+        super(forgotPasswordService);
     }
 
     public NotAuthenticatedErrorResponse(Error error) {
