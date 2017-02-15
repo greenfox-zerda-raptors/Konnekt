@@ -35,7 +35,6 @@ public class SessionService {
         return currentSession;
     }
 
-
     public void deleteSession(HttpHeaders headers) {
         Session currentSession = extractSessionTokenFromHeader(headers);
         sessionRepository.delete(currentSession);
