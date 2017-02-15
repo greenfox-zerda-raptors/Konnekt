@@ -55,13 +55,11 @@ public class UserController {
         User user = userService.findUserById(id);
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
-            if (user != null) {
-                return new ResponseEntity<>(new UserAdminResponse(user),
-                        sessionService.generateHeaders(),
-                        HttpStatus.OK);
-            } else {
-                return respondWithItemNotFound();
-            }
+            return (user != null) ?
+                    new ResponseEntity<>(new UserAdminResponse(user),
+                            sessionService.generateHeaders(),
+                            HttpStatus.OK)
+                    : respondWithItemNotFound();
         } else {
             return respondWithUnauthorized(authResult);
         }
@@ -74,7 +72,8 @@ public class UserController {
                                    @PathVariable("id") long id) {
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
-            return showEditingResults(userAdminResponse, userService.findUserById(id));
+            User user = userService.findUserById(id);
+            return showEditingResults(userAdminResponse, user);
         } else {
             return respondWithUnauthorized(authResult);
         }
@@ -103,18 +102,16 @@ public class UserController {
                 HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity showEditingResults(UserAdminResponse userAdminResponse, User user) {
-        return (userService.adminEditIsValid(userAdminResponse, user)) ?
-                showEditingOKResults(userAdminResponse) :
-                respondWithBadRequest();
+    private ResponseEntity showEditingResults(UserAdminResponse userAdminResponse, User user) {
+        if (user != null) {
+            return (userService.adminEditIsValid(userAdminResponse, user)) ?
+                    showEditingOKResults(userAdminResponse) :
+                    respondWithBadRequest();
+        } else return respondWithItemNotFound();
     }
 
     private ResponseEntity showEditingOKResults(UserAdminResponse userAdminResponse) {
-        try {
-            userService.updateUser(userAdminResponse);
-        } catch (Exception e) {
-            return respondWithItemNotFound();
-        }
+        userService.updateUser(userAdminResponse);
         return new ResponseEntity<>(userAdminResponse,
                 sessionService.generateHeaders(),
                 HttpStatus.OK);

@@ -84,6 +84,7 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void addContactWithInvalidData() throws Exception {
         mockMvc.perform(post("/contacts")
                 .header("session_token", "abcde")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(""))
                 .andExpect(status().isBadRequest());
         assertTrue(contactService.findContactByName("Jane Doe") == null);
@@ -119,20 +120,23 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void listContactsWithValidData() throws Exception {
         mockMvc.perform(get("/contacts")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", "abcde"))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void listContactsWithoutToken() throws Exception {
-        mockMvc.perform(get("/contacts"))
+        mockMvc.perform(get("/contacts")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void listContactsWithWrongToken() throws Exception {
         mockMvc.perform(get("/contacts")
-                .header("session_token", "wrong"))
+                .header("session_token", "wrong")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -158,6 +162,7 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         String updateJson = createTestJson(updatedTestContact);
         mockMvc.perform(put("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(updateJson))
                 .andExpect(status().isUnauthorized());
     }
@@ -166,10 +171,10 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void updateContactWithWrongToken() throws Exception {
         Long contactId = contactService.findContactByName("John Doe").getId();
 
-
         TestContact updatedTestContact = new TestContact("Jane Doe", "FOOBAR", 1L);
         String updateJson = createTestJson(updatedTestContact);
         mockMvc.perform(put("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", "wrong")
                 .contentType(MediaType.APPLICATION_JSON).content(updateJson))
                 .andExpect(status().isUnauthorized());
@@ -201,6 +206,7 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void badRequestPost() throws Exception {
         mockMvc.perform(post("/contacts")
                 .header("session_token", "abcde")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest());
     }
@@ -209,6 +215,7 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void badRequestPut() throws Exception {
         mockMvc.perform(put("/contact/1")
                 .header("session_token", "abcde")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest());
     }
@@ -217,7 +224,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void unauthenticatedContactIdGet() throws Exception {
         int id = 1;
         mockMvc.perform(get("/contact/{id}", id)
-                .header("session_token", "abcdefgéééééééééééé"))
+                .header("session_token", "abcdefgéééééééééééé")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com"))
                 .andExpect(status().isUnauthorized());
 
     }
@@ -226,7 +234,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void contactIdGet() throws Exception {
         int id = 1;
         mockMvc.perform(get("/contact/{id}", id)
-                .header("session_token", "abcde"))
+                .header("session_token", "abcde")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com"))
                 .andExpect(status().isOk());
 
     }
@@ -235,7 +244,8 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     public void invalidContactIdGet() throws Exception {
         int id = -1;
         mockMvc.perform(get("/contact/{id}", id)
-                .header("session_token", "abcde"))
+                .header("session_token", "abcde")
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com"))
                 .andExpect(status().isNotFound());
 
     }

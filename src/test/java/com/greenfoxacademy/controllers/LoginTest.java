@@ -60,6 +60,7 @@ public class LoginTest extends AbstractJUnit4SpringContextTests {
         TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
         String validTestJson = createTestJson(validTestLogin);
         mockMvc.perform(post("/login").with(csrf())
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
                 .andExpect(status().isCreated());
     }
@@ -70,6 +71,7 @@ public class LoginTest extends AbstractJUnit4SpringContextTests {
         TestLogin validTestLogin = new TestLogin("admin@admin.hu", "12345");
         String validTestJson = createTestJson(validTestLogin);
         mockMvc.perform(post("/login").with(csrf())
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
                 .andExpect(status().isUnauthorized());
     }

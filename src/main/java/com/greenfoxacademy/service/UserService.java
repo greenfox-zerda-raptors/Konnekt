@@ -6,13 +6,11 @@ import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.responses.UserRoles;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 /**
@@ -25,6 +23,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
+
+    @PersistenceContext(name = "default")
+    EntityManager em;
 
     @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -107,8 +108,7 @@ public class UserService {
     public String encryptPassword(String rawPassword) {
         try {
             return passwordEncoder.encode(rawPassword);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return "";
         }
@@ -135,18 +135,18 @@ public class UserService {
                 userAdminResponse.getUserRole().equals(UserRoles.ADMIN);
     }
 
-    public void updateUser(UserAdminResponse userAdminResponse) throws Exception {
+    public void updateUser(UserAdminResponse userAdminResponse) { //TODO this will produce a NPE if called without ensuring the id exists (currently enforced)
         User user = userRepository.findOne(userAdminResponse.getUser_id());
-        if (user == null) {
-            throw new Exception("User with specified ID not found!");
-        } else {
-            user = userRepository.findOne(userAdminResponse.getUser_id());
-            user.setEmail(userAdminResponse.getEmail());
-            user.setFirstName(userAdminResponse.getFirstName());
-            user.setLastName(userAdminResponse.getLastName());
-            user.setUserRole(userAdminResponse.getUserRole());
-            user.setEnabled(userAdminResponse.isEnabled());
-            userRepository.save(user);
-        }
+        user.setEmail(userAdminResponse.getEmail());
+        user.setFirstName(userAdminResponse.getFirstName());
+        user.setLastName(userAdminResponse.getLastName());
+        user.setUserRole(userAdminResponse.getUserRole());
+        user.setEnabled(userAdminResponse.isEnabled());
+        userRepository.save(user);
+    }
+
+    public void restartUserIdSeq() {
+        em.createNativeQuery("ALTER SEQUENCE user_id_seq RESTART WITH 2")
+                .executeUpdate();
     }
 }

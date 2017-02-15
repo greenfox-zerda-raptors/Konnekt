@@ -1,16 +1,15 @@
 package com.greenfoxacademy.controllers;
 
+import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
-import com.greenfoxacademy.domain.ForgotPasswordToken;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
-import com.greenfoxacademy.repository.ForgotPasswordRepository;
 import com.greenfoxacademy.repository.UserRepository;
+import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.responses.UserRoles;
 import com.greenfoxacademy.service.ContactService;
-import com.greenfoxacademy.service.ForgotPasswordService;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.junit.Before;
@@ -30,7 +29,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -49,6 +50,8 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     private String token;
     private String adminToken;
     private MockMvc mockMvc;
+    private User user;
+    private User admin;
 
     @Autowired
     private WebApplicationContext context;
@@ -63,10 +66,6 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private ForgotPasswordService forgotPasswordService;
-    @Autowired
-    private ForgotPasswordRepository forgotPasswordRepository;
 
     @Autowired
     private SessionService sessionService;
@@ -77,9 +76,11 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
         this.mockMvc = webAppContextSetup(context).build();
         this.token = sessionService.generateToken();
         this.adminToken = sessionService.generateToken();
-        forgotPasswordRepository.save(new ForgotPasswordToken(token, userRepository.findOne(1L)));
-        User user = new User("Sanyi", "sanyi1", true, UserRoles.USER);
-        User admin = new User("Pista", "1234", true, UserRoles.ADMIN);
+        userService.restartUserIdSeq();
+        user = new User("Sanyi", "sanyi1", true, UserRoles.USER);
+        user.setEmail("never@mind.me");
+        admin = new User("Pista", "1234", true, UserRoles.ADMIN);
+        admin.setEmail("never@mind.me");
         userService.save(user);
         userService.save(admin);
         Session session = new Session(token, user);
@@ -106,6 +107,112 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
 
+    }
+
+    @Test
+    public void testUsersPutWithImproperPrivileges() throws Exception {
+        int id = 2;
+        String validRequest = createTestJson(new UserAdminResponse(user));
+        mockMvc.perform(put("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", token)
+                .contentType(MediaType.APPLICATION_JSON).content(validRequest))
+                .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    public void testIdChangeRejectionOnUsersPut() throws Exception {
+        long id = 2;
+        long newId = 3;
+        UserAdminResponse response = new UserAdminResponse();
+        response.setUser_id(newId);
+        response.setEmail(user.getEmail());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setUserRole(user.getUserRole());
+        response.setEnabled(user.isEnabled());
+        String invalidInfo = createTestJson(response);
+        mockMvc.perform(put("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON).content(invalidInfo))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testUsersPutWithValidRequest() throws Exception {
+        long id = 2;
+        String newFirstName = "Alejandro";
+        UserAdminResponse userAdminResponse = new UserAdminResponse(user);
+        userAdminResponse.setFirstName(newFirstName);
+        String updatedInfo = createTestJson(userAdminResponse);
+        mockMvc.perform(put("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON).content(updatedInfo));
+
+        assertTrue(newFirstName.equals(userService.findUserById(id).getFirstName()));
+    }
+
+    @Test
+    public void testUsersPutWithInvalidRequest() throws Exception {
+        int id = 2;
+        user.setUserRole("a legmenőbb ember");
+        String updatedInfo = createTestJson(new UserAdminResponse(user));
+        user.setUserRole(UserRoles.USER);
+        mockMvc.perform(put("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON).content(updatedInfo))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testUsersPutWithNonexistentID() throws Exception {
+        long id = -1;
+        UserAdminResponse userAdminResponse = new UserAdminResponse(user);
+        String updatedInfo = createTestJson(userAdminResponse);
+        mockMvc.perform(put("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON).content(updatedInfo))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUsersSingleGetWithNonexistentID() throws Exception {
+        long id = -1;
+        mockMvc.perform(get("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUsersSingleGetWithValidRequest() throws Exception {
+        long id = 2;
+        mockMvc.perform(get("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testUsersSingleGetWithImproperPrivileges() throws Exception {
+        long id = 2;
+        mockMvc.perform(get("/users/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", token)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private String createTestJson(UserAdminResponse userAdminResponse) {
+        Gson testContactConverter = new Gson();
+        return testContactConverter.toJson(userAdminResponse);
     }
 
 }
