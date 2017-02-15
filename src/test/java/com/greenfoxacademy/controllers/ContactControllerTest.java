@@ -3,7 +3,9 @@ package com.greenfoxacademy.controllers;
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
+import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.Session;
+import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.repository.SessionRepository;
 import com.greenfoxacademy.repository.UserRepository;
@@ -68,7 +70,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
-        contactService.emptyRepositoryBeforeTest();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
     }
@@ -266,6 +267,34 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void deleteContactWithWrongUser() throws Exception {
+        User user2 = new User();
+        user2.setEmail("user2@user.com");
+        user2.setPassword("user2");
+        userRepository.save(user2);
+        Session session2 = new Session("fghi", userService.findUserById(2L));
+        sessionService.saveSession(session2);
+
+        Contact validContact = new Contact();
+        validContact.setUser(user2);
+        validContact.setName("John Doe");
+        validContact.setDescription("Foobar");
+        contactRepository.save(validContact);
+        // String validTestJson = createTestJson(validContact);
+
+//        mockMvc.perform(post("/contacts")
+//                .header("session_token", "abcde")
+//                .contentType(MediaType.APPLICATION_JSON).content(validTestJson));
+        Long contactId = contactService.findContactByName("John Doe").getId();
+        mockMvc.perform(delete("/contact/{id}", contactId)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+
     }
 
     private String createTestJson(TestContact testContact) {

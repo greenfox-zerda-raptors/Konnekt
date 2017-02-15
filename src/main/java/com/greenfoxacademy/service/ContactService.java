@@ -74,8 +74,8 @@ public class ContactService {
         }
     }
 
-    private void processCurrentTag(Contact contact, String tagName){
-        Tag currentTag = (tagExists(tagName))?
+    private void processCurrentTag(Contact contact, String tagName) {
+        Tag currentTag = (tagExists(tagName)) ?
                 tagService.findByTagName(tagName) : new Tag(tagName);
         tagService.saveTag(currentTag);
         if (!contact.getTags().contains(currentTag)) {
@@ -137,7 +137,4 @@ public class ContactService {
         return contactRepository.findByName(contactName);
     }
 
-    public void emptyRepositoryBeforeTest() {
-        contactRepository.deleteAll();
-    }
 }
