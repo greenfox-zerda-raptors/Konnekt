@@ -2,7 +2,7 @@ package com.greenfoxacademy.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.greenfoxacademy.responses.UserAdminResponse;
+import com.greenfoxacademy.bodies.UserAdminResponse;
 import com.greenfoxacademy.responses.UserRoles;
 import lombok.AccessLevel;
 import lombok.Data;

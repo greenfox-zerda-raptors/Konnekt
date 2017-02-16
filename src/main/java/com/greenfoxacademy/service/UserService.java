@@ -1,5 +1,6 @@
 package com.greenfoxacademy.service;
 
+import com.greenfoxacademy.bodies.UserAdminResponse;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.requests.AuthRequest;
@@ -21,16 +22,13 @@ import java.util.List;
 
 
 @Service
-public class UserService {
+public class UserService extends BaseService{
 
     private final UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
-
-    @Autowired //TODO this is here because with a constructor autowire there would be a circular reference between UserService and SessionService
-    private SessionService sessionService;
-
+    
     @PersistenceContext(name = "default")
-    EntityManager em;
+    private EntityManager em;
 
     @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -111,12 +109,7 @@ public class UserService {
     }
 
     public String encryptPassword(String rawPassword) {
-        try {
-            return passwordEncoder.encode(rawPassword);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
+        return passwordEncoder.encode(rawPassword);
     }
 
     public void setUserPassword(User user, String password) {
@@ -159,13 +152,13 @@ public class UserService {
         NotAuthenticatedErrorResponse response = new NotAuthenticatedErrorResponse();
         response.addErrorMessages(authResult);
         return new ResponseEntity<>(response,
-                sessionService.generateHeaders(),
+                generateHeaders(),
                 HttpStatus.UNAUTHORIZED);
     }
 
     private ResponseEntity respondWithItemNotFound() {
         return new ResponseEntity<>(new ItemNotFoundErrorResponse(ItemNotFoundErrorResponse.USER),
-                sessionService.generateHeaders(),
+                generateHeaders(),
                 HttpStatus.NOT_FOUND);
     }
 
@@ -175,7 +168,7 @@ public class UserService {
                 new BadRequestErrorResponse(
                         new Error("Data error", "Data did not match required format."));
         return new ResponseEntity<>(badRequestErrorResponse,
-                sessionService.generateHeaders(),
+                generateHeaders(),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -190,7 +183,7 @@ public class UserService {
     private ResponseEntity showEditingOKResults(UserAdminResponse userAdminResponse) {
         updateUser(userAdminResponse);
         return new ResponseEntity<>(userAdminResponse,
-                sessionService.generateHeaders(),
+                generateHeaders(),
                 HttpStatus.OK);
     }
 
@@ -198,13 +191,13 @@ public class UserService {
         List<User> allUsers = obtainAllUsers();
         MultipleUserResponse multipleUserResponse = new MultipleUserResponse(allUsers);
         return new ResponseEntity<>(multipleUserResponse,
-                sessionService.generateHeaders(),
+                generateHeaders(),
                 HttpStatus.OK);
     }
 
     private ResponseEntity respondWithSingleUser(User user) {
         return new ResponseEntity<>(new UserAdminResponse(user),
-                sessionService.generateHeaders(),
+                generateHeaders(),
                 HttpStatus.OK);
     }
 
@@ -212,5 +205,16 @@ public class UserService {
         return (user != null) ?
                 respondWithSingleUser(user)
                 : respondWithItemNotFound();
+    }
+
+    public ResponseEntity showDeletingResults(User user) {
+        return (user != null) ?
+                deleteUser(user)
+                : respondWithItemNotFound();
+    }
+
+    private ResponseEntity deleteUser(User user) {
+        userRepository.delete(user.getId());
+        return respondWithSingleUser(user);
     }
 }

@@ -2,12 +2,12 @@ package com.greenfoxacademy.controllers;
 
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
+import com.greenfoxacademy.bodies.UserAdminResponse;
 import com.greenfoxacademy.config.Profiles;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.repository.UserRepository;
-import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.responses.UserRoles;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
@@ -30,8 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -113,7 +112,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     public void testUsersPutWithImproperPrivileges() throws Exception {
         int id = 2;
         String validRequest = createTestJson(new UserAdminResponse(user));
-        mockMvc.perform(put("/users/{id}", id)
+        mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", token)
                 .contentType(MediaType.APPLICATION_JSON).content(validRequest))
@@ -133,7 +132,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
         response.setUserRole(user.getUserRole());
         response.setEnabled(user.isEnabled());
         String invalidInfo = createTestJson(response);
-        mockMvc.perform(put("/users/{id}", id)
+        mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
                 .contentType(MediaType.APPLICATION_JSON).content(invalidInfo))
@@ -147,7 +146,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
         UserAdminResponse userAdminResponse = new UserAdminResponse(user);
         userAdminResponse.setFirstName(newFirstName);
         String updatedInfo = createTestJson(userAdminResponse);
-        mockMvc.perform(put("/users/{id}", id)
+        mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
                 .contentType(MediaType.APPLICATION_JSON).content(updatedInfo));
@@ -161,7 +160,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
         user.setUserRole("a legmenőbb ember");
         String updatedInfo = createTestJson(new UserAdminResponse(user));
         user.setUserRole(UserRoles.USER);
-        mockMvc.perform(put("/users/{id}", id)
+        mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
                 .contentType(MediaType.APPLICATION_JSON).content(updatedInfo))
@@ -173,7 +172,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
         long id = -1;
         UserAdminResponse userAdminResponse = new UserAdminResponse(user);
         String updatedInfo = createTestJson(userAdminResponse);
-        mockMvc.perform(put("/users/{id}", id)
+        mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
                 .contentType(MediaType.APPLICATION_JSON).content(updatedInfo))
@@ -183,7 +182,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testUsersSingleGetWithNonexistentID() throws Exception {
         long id = -1;
-        mockMvc.perform(get("/users/{id}", id)
+        mockMvc.perform(get("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -193,7 +192,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testUsersSingleGetWithValidRequest() throws Exception {
         long id = 2;
-        mockMvc.perform(get("/users/{id}", id)
+        mockMvc.perform(get("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -203,11 +202,43 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testUsersSingleGetWithImproperPrivileges() throws Exception {
         long id = 2;
-        mockMvc.perform(get("/users/{id}", id)
+        mockMvc.perform(get("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", token)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testUsersDeleteWithImproperPrivileges() throws Exception {
+        long id = 2;
+        mockMvc.perform(delete("/user/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", token)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testUsersDeleteWithProperPrivileges() throws Exception {
+        long id = 2;
+        mockMvc.perform(delete("/user/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        assertTrue(userRepository.findOne(id) == null);
+    }
+
+    @Test
+    public void testUsersDeleteWithNonExistentID() throws Exception {
+        long id = -1;
+        mockMvc.perform(delete("/user/{id}", id)
+                .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
+                .header("session_token", adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     private String createTestJson(UserAdminResponse userAdminResponse) {

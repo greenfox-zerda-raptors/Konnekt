@@ -2,6 +2,7 @@ package com.greenfoxacademy.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.greenfoxacademy.bodies.UserAdminResponse;
 import com.greenfoxacademy.domain.User;
 
 import java.util.ArrayList;

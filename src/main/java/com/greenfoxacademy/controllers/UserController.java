@@ -1,8 +1,8 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.bodies.UserAdminResponse;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.responses.AuthCodes;
-import com.greenfoxacademy.responses.UserAdminResponse;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class UserController {
 
     }
 
-    @GetMapping("users/{id}")
+    @GetMapping("user/{id}")
     public ResponseEntity showSingleUser(@RequestHeader HttpHeaders headers,
                                          @PathVariable("id") long id) {
         User user = userService.findUserById(id);
@@ -51,7 +51,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("users/{id}")
+    @PutMapping("user/{id}")
     public ResponseEntity editUser(@RequestHeader HttpHeaders headers,
                                    @RequestBody UserAdminResponse userAdminResponse,
                                    @PathVariable("id") long id) {
@@ -62,6 +62,18 @@ public class UserController {
         } else {
             return userService.respondWithUnauthorized(authResult);
         }
+    }
+
+    @DeleteMapping("user/{id}")
+    public ResponseEntity deleteUser(@RequestHeader HttpHeaders headers,
+                                     @PathVariable("id") long id) {
+        int authResult = sessionService.sessionIsValid(headers, true);
+        if (authResult == AuthCodes.OK) {
+            return userService.showDeletingResults(userService.findUserById(id));
+        } else {
+            return userService.respondWithUnauthorized(authResult);
+        }
+
     }
 
 
