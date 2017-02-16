@@ -51,7 +51,6 @@ public class ContactController {
         return (authResult == AuthCodes.OK) ?
                 contactService.showDeletingResults(
                         contactId,
-                        headers,
                         sessionService.obtainUserIdFromHeaderToken(headers)) :
                 contactService.respondWithNotAuthenticated(authResult);
     }

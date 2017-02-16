@@ -179,7 +179,7 @@ public class ContactService extends BaseService {
         return showCustomResults(multipleContactsResponse, HttpStatus.OK);
     }
 
-    public ResponseEntity showDeletingResults(Long contactId, HttpHeaders headers, Long userId) {
+    public ResponseEntity showDeletingResults(Long contactId, Long userId) {
         return (contactBelongsToUser(contactId, userId)) ?
                 showDeletingOKResults(contactId) :
                 respondWithBadRequest(badFormat);

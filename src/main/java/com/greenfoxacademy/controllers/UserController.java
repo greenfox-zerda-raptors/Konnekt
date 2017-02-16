@@ -39,7 +39,7 @@ public class UserController {
 
     }
 
-    @GetMapping("user/{id}")
+    @GetMapping("/user/{id}")
     public ResponseEntity showSingleUser(@RequestHeader HttpHeaders headers,
                                          @PathVariable("id") long id) {
         User user = userService.findUserById(id);
@@ -51,7 +51,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("user/{id}")
+    @PutMapping("/user/{id}")
     public ResponseEntity editUser(@RequestHeader HttpHeaders headers,
                                    @RequestBody UserAdminResponse userAdminResponse,
                                    @PathVariable("id") long id) {
@@ -64,7 +64,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("user/{id}")
+    @DeleteMapping("/user/{id}")
     public ResponseEntity deleteUser(@RequestHeader HttpHeaders headers,
                                      @PathVariable("id") long id) {
         int authResult = sessionService.sessionIsValid(headers, true);
