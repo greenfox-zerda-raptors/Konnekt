@@ -143,7 +143,6 @@ public class ContactService {
         return contactRepository.findByName(contactName);
     }
 
-
     public void emptyRepositoryBeforeTest() {
         contactRepository.deleteAll();
         em.createNativeQuery("ALTER SEQUENCE contact_id_seq RESTART WITH 1")

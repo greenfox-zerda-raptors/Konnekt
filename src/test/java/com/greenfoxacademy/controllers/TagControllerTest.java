@@ -69,8 +69,6 @@ public class TagControllerTest extends AbstractJUnit4SpringContextTests {
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
-        contactService.emptyRepositoryBeforeTest();
-        tagService.emptyRepositoryBeforeTest();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
     }

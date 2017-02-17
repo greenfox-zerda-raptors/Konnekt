@@ -71,9 +71,9 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
-        contactService.emptyRepositoryBeforeTest();
         Session session = new Session("abcde", userService.findUserById(1L));
         sessionService.saveSession(session);
+        contactService.emptyRepositoryBeforeTest();
         Contact testcontact = new Contact(userService.findUserById(1L), "John Doe", "FOOBAR");
         contactRepository.save(testcontact);
     }
@@ -247,7 +247,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
     }
-
 
     private String createTestJson(TestContact testContact) {
         Gson testContactConverter = new Gson();
