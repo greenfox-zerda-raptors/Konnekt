@@ -75,10 +75,10 @@ public class SessionService extends BaseService {
 
     public int sessionIsValid(HttpHeaders headers, boolean requireAdmin) {
         String token = headers.getFirst("session_token");
-        return sessionTokenIsValid(token, sessionRepository::findOne, requireAdmin);
+        return tokenIsValid(token, sessionRepository::findOne, requireAdmin);
     }
 
-    public int sessionTokenIsValid(String token, Function<String, GenericToken> findFunction, boolean requireAdmin) {
+    public int tokenIsValid(String token, Function<String, GenericToken> findFunction, boolean requireAdmin) {
         if (token == null) {
             return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
         } else if (!tokenExists(token, findFunction)) {

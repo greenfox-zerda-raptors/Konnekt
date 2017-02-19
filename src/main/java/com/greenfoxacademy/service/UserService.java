@@ -112,8 +112,8 @@ public class UserService extends BaseService{
         return passwordEncoder.encode(rawPassword);
     }
 
-    public void setUserPassword(User user, String password) {
-        user.setPassword(password);
+    public void setUserPassword(User user, String rawPassword) {
+        user.setPassword(encryptPassword(rawPassword));
         save(user);
     }
 

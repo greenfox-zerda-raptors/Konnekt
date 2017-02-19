@@ -50,7 +50,7 @@ public class ForgotPasswordController {
             User activeUser = forgotPasswordService.findUserByToken(token);
             return forgotPasswordService.showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
         } else {
-            NotAuthenticatedErrorResponse response =
+            NotAuthenticatedErrorResponse response = //TODO refactor like respondwithnotauthenticated
                     new NotAuthenticatedErrorResponse(forgotPasswordService);
             response.addErrorMessages(authResult);
             return forgotPasswordService.respondWithBadRequest(response);

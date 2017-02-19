@@ -10,7 +10,7 @@ import com.greenfoxacademy.service.UserService;
 
 public class PasswordResetErrorResponse extends ErrorResponse {
 
-    public PasswordResetErrorResponse(UserService userService) {
+    public PasswordResetErrorResponse(UserService userService) { //TODO possibly autowire this
         super(userService);
     }
 

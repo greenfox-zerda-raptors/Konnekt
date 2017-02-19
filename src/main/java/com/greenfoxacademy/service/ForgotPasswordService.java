@@ -98,7 +98,7 @@ public class ForgotPasswordService extends BaseService {
     private ResponseEntity showOKForgotPasswordResults(AuthRequest authRequest,
                                                        String token) {
         User activeUser = findUserByToken(token);
-        userService.setUserPassword(activeUser, userService.encryptPassword(authRequest.getPassword()));
+        userService.setUserPassword(activeUser, authRequest.getPassword());
         deleteToken(token);
         return showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
     }
@@ -107,7 +107,7 @@ public class ForgotPasswordService extends BaseService {
         String token = saveToken(generateToken(), user);
         int responseStatus = sendEmail(findToken(token));
         return (responseStatus == 202) ?
-                showCustomResults("Email sent.", HttpStatus.ACCEPTED) :
+                showCustomResults("Email sent.", HttpStatus.ACCEPTED) : //TODO rewrite this as json
                 showCustomResults(EMAIL_PROBLEM, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
@@ -129,8 +129,8 @@ public class ForgotPasswordService extends BaseService {
         return respondWithBadRequest(createErrorResponse(request));
     }
 
-    public int sessionTokenIsValid(String token, boolean requireAdmin) {
-        return sessionService.sessionTokenIsValid(token, forgotPasswordRepository::findOne, requireAdmin);
+    public int sessionTokenIsValid(String token, boolean requireAdmin) { //TODO unify with instance in sessionservice, move to baseservice
+        return sessionService.tokenIsValid(token, forgotPasswordRepository::findOne, requireAdmin);
     }
 
 }

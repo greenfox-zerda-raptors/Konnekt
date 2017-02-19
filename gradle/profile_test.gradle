@@ -30,8 +30,5 @@ repositories {
 
 
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter-jdbc')
-
-
-    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }

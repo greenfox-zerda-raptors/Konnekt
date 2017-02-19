@@ -17,12 +17,11 @@ import java.util.Set;
 @Setter
 @JsonSerialize
 @NoArgsConstructor
-//@ToString
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY,
-            generator = "contact_id_seq")
-    @SequenceGenerator(name = "contact_id_seq",
+            generator = "pista")
+    @SequenceGenerator(name = "pista",
             sequenceName = "contact_id_seq",
             allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false, updatable = false)

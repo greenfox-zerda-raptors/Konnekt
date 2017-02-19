@@ -42,10 +42,9 @@ public class UserController {
     @GetMapping("/user/{id}")
     public ResponseEntity showSingleUser(@RequestHeader HttpHeaders headers,
                                          @PathVariable("id") long id) {
-        User user = userService.findUserById(id);
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
-            return userService.respondWithFoundOrNotFound(user);
+            return userService.respondWithFoundOrNotFound(userService.findUserById(id));
         } else {
             return userService.respondWithUnauthorized(authResult);
         }
