@@ -7,6 +7,10 @@ import com.greenfoxacademy.service.ForgotPasswordService;
  * Created by BSoptei on 2/2/2017.
  */
 public class NotAuthenticatedErrorResponse extends ErrorResponse {
+
+    public NotAuthenticatedErrorResponse() {
+    }
+
     public NotAuthenticatedErrorResponse(ForgotPasswordService forgotPasswordService) {
         super(forgotPasswordService);
     }
@@ -26,6 +30,8 @@ public class NotAuthenticatedErrorResponse extends ErrorResponse {
             case AuthCodes.SESSION_TOKEN_EXPIRED:
                 errors.add(new Error("Authentication error", "Session token expired."));
                 break;
+            case AuthCodes.INSUFFICIENT_PRIVILEGES:
+                errors.add(new Error("Authentication error", "You do not have the required user privileges to access this resource"));
         }
     }
 

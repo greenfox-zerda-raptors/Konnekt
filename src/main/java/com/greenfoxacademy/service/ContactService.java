@@ -1,11 +1,19 @@
 package com.greenfoxacademy.service;
 
+import com.greenfoxacademy.bodies.ContactBody;
 import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.Tag;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.requests.ContactRequest;
+import com.greenfoxacademy.responses.BadRequestErrorResponse;
+import com.greenfoxacademy.responses.Error;
+import com.greenfoxacademy.responses.ItemNotFoundErrorResponse;
+import com.greenfoxacademy.responses.MultipleContactsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -17,11 +25,14 @@ import java.util.Set;
  * Created by Jade Team on 2017.01.24..
  */
 @Service
-public class ContactService {
+public class ContactService extends BaseService {
 
     private UserService userService;
     private ContactRepository contactRepository;
     private TagService tagService;
+    private final BadRequestErrorResponse badFormat =
+            new BadRequestErrorResponse(
+                    new Error("Data error", "Data did not match required format."));
 
     @Autowired
     public ContactService(UserService userService,
@@ -42,7 +53,7 @@ public class ContactService {
     public Contact createContact(ContactRequest contactRequest, Long contactId) {
         Contact contact = (contactId == null) ?
                 new Contact() : contactRepository.findOne(contactId);
-        adjustContactProperties(contact, contactRequest);
+        adjustContactProperties(contact, contactRequest); //TODO unnecessary double set
         contact.setName(contactRequest.getName());
         contact.setDescription(contactRequest.getDescription());
         return contact;
@@ -147,5 +158,69 @@ public class ContactService {
         contactRepository.deleteAll();
         em.createNativeQuery("ALTER SEQUENCE contact_id_seq RESTART WITH 1")
                 .executeUpdate();
+    }
+
+    public ResponseEntity showAddingResults(ContactRequest contactRequest) {
+        return (contactRequestIsValid(contactRequest)) ?
+                showAddingOKResults(contactRequest) :
+                respondWithBadRequest(badFormat);
+    }
+
+    private ResponseEntity showAddingOKResults(ContactRequest contactRequest) {
+        Contact newContact = createContact(contactRequest, null);
+        saveNewContact(newContact);
+        return showCustomResults(newContact, HttpStatus.CREATED);
+    }
+
+    public ResponseEntity showContacts() {
+        MultipleContactsResponse multipleContactsResponse =
+                new MultipleContactsResponse(obtainAllContacts());
+        return showCustomResults(multipleContactsResponse, HttpStatus.OK);
+    }
+
+    public ResponseEntity showDeletingResults(Long contactId, Long userId) {
+        return (contactBelongsToUser(contactId, userId)) ?
+                showDeletingOKResults(contactId) :
+                respondWithBadRequest(badFormat);
+    }
+
+    private ResponseEntity showDeletingOKResults(Long contactId) {
+        Contact contactToDelete = findContactById(contactId);
+        ContactBody deletedContactInfo = new ContactBody(contactToDelete);
+        deleteContact(contactId);
+        return showCustomResults(deletedContactInfo, HttpStatus.OK);
+    }
+
+    public ResponseEntity showEditingResults(Long contactId,
+                                             ContactRequest contactRequest,
+                                             Long userId) {
+        return (editingParametersAreValid(contactId, userId, contactRequest)) ?
+                showEditingOKResults(contactId, contactRequest) :
+                respondWithBadRequest(badFormat);
+    }
+
+    private ResponseEntity showEditingOKResults(Long contactId,
+                                                ContactRequest contactRequest) {
+        Contact updatedContact = createContact(contactRequest, contactId);
+        saveNewContact(updatedContact);
+        return showCustomResults(updatedContact, HttpStatus.OK);
+    }
+
+    private boolean editingParametersAreValid(Long contactId,
+                                              Long userId,
+                                              ContactRequest contactRequest) {
+        return contactBelongsToUser(contactId, userId) &&
+                contactRequestIsValid(contactRequest);
+    }
+
+    public ResponseEntity showSingleContact(Long contactId) {
+        Contact singleContact = findContactById(contactId);
+        if (singleContact != null) {
+            return showCustomResults(singleContact,
+                    HttpStatus.OK);
+        } else {
+            return showCustomResults(new ItemNotFoundErrorResponse(ItemNotFoundErrorResponse.CONTACT),
+                    HttpStatus.NOT_FOUND);
+        }
     }
 }
