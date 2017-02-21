@@ -1,6 +1,5 @@
 package com.greenfoxacademy.service;
 
-import com.greenfoxacademy.domain.Contact;
 import com.greenfoxacademy.domain.Tag;
 import com.greenfoxacademy.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,7 @@ public class TagService {
     private TagRepository tagRepository;
 
     @Autowired
-    public TagService(TagRepository tagRepository){
+    public TagService(TagRepository tagRepository) {
         this.tagRepository = tagRepository;
     }
 
@@ -37,11 +36,11 @@ public class TagService {
         return tagRepository.findOne(id);
     }
 
-    public void saveTag(Tag tag){
+    public void saveTag(Tag tag) {
         tagRepository.save(tag);
     }
 
-    public List<Tag> recommendTagsByBeginning(String rawPattern){
+    public List<Tag> recommendTagsByBeginning(String rawPattern) {
         String pattern = rawPattern.concat("%");
         return tagRepository.findByBeginningLike(pattern);
     }
@@ -50,7 +49,4 @@ public class TagService {
         return tagRepository.findByTagName(tagName);
     }
 
-    public void emptyRepositoryBeforeTest() {
-        tagRepository.deleteAll();
-    }
 }

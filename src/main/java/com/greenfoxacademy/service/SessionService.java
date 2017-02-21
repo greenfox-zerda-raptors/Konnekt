@@ -35,6 +35,11 @@ public class SessionService {
         return currentSession;
     }
 
+    public void deleteSession(HttpHeaders headers) {
+        Session currentSession = extractSessionTokenFromHeader(headers);
+        sessionRepository.delete(currentSession);
+    }
+
     public String generateToken() {
         return new BigInteger(130, random).toString(32);
     }
@@ -52,6 +57,11 @@ public class SessionService {
                 .getFirst("session_token"))
                 .getUser()
                 .getId();
+    }
+
+    public Session extractSessionTokenFromHeader(HttpHeaders headers) {
+        return sessionRepository.findOne(headers
+                .getFirst("session_token"));
     }
 
     public HttpHeaders generateHeaders() {

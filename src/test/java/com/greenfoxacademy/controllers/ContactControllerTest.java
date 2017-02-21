@@ -250,7 +250,6 @@ public class ContactControllerTest extends AbstractJUnit4SpringContextTests {
                 .andExpect(status().isUnauthorized());
     }
 
-
     private String createTestJson(TestContact testContact) {
         Gson testContactConverter = new Gson();
         return testContactConverter.toJson(testContact);
