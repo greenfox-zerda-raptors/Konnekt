@@ -86,7 +86,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
-        token = forgotPasswordService.generateToken();
+        this.token = forgotPasswordService.generateToken();
         forgotPasswordRepository.save(new ForgotPasswordToken(token, userRepository.findOne(1L)));
     }
 
@@ -163,7 +163,8 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
                 .contentType(MediaType.APPLICATION_JSON).content(testReset))
                 .andExpect(status().isOk());
         assertTrue(passwordEncoder.matches("goodpassword", userService.findUserById(1L).getPassword()));
-        assertFalse(sessionService.tokenExists(token, forgotPasswordRepository));
+        assertFalse(sessionService.tokenExists(token, (string) -> forgotPasswordRepository.findOne(token)));
+
 
     }
 
@@ -183,8 +184,10 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         sessionList.add(userIdSessionToken);
         sessionList.add(manualSessionToken);
         sessionRepository.save(sessionList);
-        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository));
-        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository));
+
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(sessionToken.getToken(), sessionRepository::findOne, false));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredSessionToken.getToken(), sessionRepository::findOne, false));
+
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("session_token", userIdSessionToken.getToken());
         assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
@@ -192,7 +195,6 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         httpHeaders.set("session_token", tokenString);
         assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
         Date now = new Date();
-        assertTrue(now.after(sessionRepository.findOne(tokenString).getTimestamp()));
         assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT() > 0);
 
     }
@@ -214,9 +216,9 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         forgotList.add(userIdToken);
         forgotList.add(manualToken);
         forgotPasswordRepository.save(forgotList);
+        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(forgotToken.getToken(), forgotPasswordRepository::findOne, false));
+        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredToken.getToken(), forgotPasswordRepository::findOne, false));
 
-        assertEquals(AuthCodes.OK, sessionService.sessionTokenIsValid(forgotToken.getToken(), forgotPasswordRepository));
-        assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.sessionTokenIsValid(expiredToken.getToken(), forgotPasswordRepository));
         assertEquals(1L, (long) forgotPasswordService.findUserByToken(userIdToken.getToken()).getId());
         assertEquals(userService.findUserById(1L), forgotPasswordService.findUserByToken(tokenString));
 
