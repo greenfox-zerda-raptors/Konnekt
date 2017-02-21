@@ -45,22 +45,16 @@ public class ForgotPasswordController {
 
     @GetMapping("/resetpassword")
     public ResponseEntity getResetPassword(@RequestParam String token) {
-        int authResult = forgotPasswordService.sessionTokenIsValid(token, false);
-        if (authResult == AuthCodes.OK) {
-            User activeUser = forgotPasswordService.findUserByToken(token);
-            return forgotPasswordService.showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
-        } else {
-            NotAuthenticatedErrorResponse response = //TODO refactor like respondwithnotauthenticated
-                    new NotAuthenticatedErrorResponse(forgotPasswordService);
-            response.addErrorMessages(authResult);
-            return forgotPasswordService.respondWithBadRequest(response);
-        }
+        int authResult = forgotPasswordService.forgotTokenIsValid(token);
+        return (authResult == AuthCodes.OK) ?
+            forgotPasswordService.showCustomResults(new UserResponse(forgotPasswordService.obtainUserFromToken(token).getId()), HttpStatus.OK) :
+            forgotPasswordService.respondWithNotAuthenticated(authResult);
     }
 
     @PostMapping("/resetpassword")
     public ResponseEntity resetPassword(@RequestParam String token,
                                         @RequestBody AuthRequest authRequest) {
-        int authResult = forgotPasswordService.sessionTokenIsValid(token, false);
+        int authResult = forgotPasswordService.forgotTokenIsValid(token);
         return (authResult == AuthCodes.OK) ?
                 forgotPasswordService.showForgotPasswordResults(authRequest, token) :
                 forgotPasswordService.respondWithNotAuthenticated(authResult);

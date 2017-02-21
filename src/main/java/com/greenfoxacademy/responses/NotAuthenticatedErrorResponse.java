@@ -1,6 +1,7 @@
 package com.greenfoxacademy.responses;
 
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.requests.BaseRequest;
 import com.greenfoxacademy.service.ForgotPasswordService;
 
 /**
@@ -9,10 +10,7 @@ import com.greenfoxacademy.service.ForgotPasswordService;
 public class NotAuthenticatedErrorResponse extends ErrorResponse {
 
     public NotAuthenticatedErrorResponse() {
-    }
-
-    public NotAuthenticatedErrorResponse(ForgotPasswordService forgotPasswordService) {
-        super(forgotPasswordService);
+        super(new Error("Authentication error", "Not authenticated"));
     }
 
     public NotAuthenticatedErrorResponse(Error error) {
@@ -36,6 +34,7 @@ public class NotAuthenticatedErrorResponse extends ErrorResponse {
     }
 
     @Override
-    public void addErrorMessages(AuthRequest request) {
+    public <T extends BaseRequest> void addErrorMessages(T request) {
+
     }
 }

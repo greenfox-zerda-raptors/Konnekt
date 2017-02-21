@@ -40,13 +40,8 @@ public class SessionService extends BaseService {
         return currentSession;
     }
 
-
     public void saveSession(Session currentSession) {
         sessionRepository.save(currentSession);
-    }
-
-    public boolean tokenExists(String token, Function<String, GenericToken> findFunction) {
-        return findFunction.apply(token) != null;
     }
 
     public Long obtainUserIdFromHeaderToken(HttpHeaders headers) {
@@ -54,10 +49,6 @@ public class SessionService extends BaseService {
                 .getFirst("session_token"))
                 .getUser()
                 .getId();
-    }
-
-    public String obtainUserRoleFromToken(String token) {
-        return sessionRepository.findOne(token).getUser().getUserRole();
     }
 
     public HttpHeaders generateHeaders() {
@@ -78,35 +69,6 @@ public class SessionService extends BaseService {
         return tokenIsValid(token, sessionRepository::findOne, requireAdmin);
     }
 
-    public int tokenIsValid(String token, Function<String, GenericToken> findFunction, boolean requireAdmin) {
-        if (token == null) {
-            return AuthCodes.SESSION_TOKEN_NOT_PRESENT;
-        } else if (!tokenExists(token, findFunction)) {
-            return AuthCodes.SESSION_TOKEN_NOT_REGISTERED;
-        } else if (tokenIsExpired(token, findFunction)) {
-            return AuthCodes.SESSION_TOKEN_EXPIRED;
-        }
-        if (requireAdmin) {
-            return (obtainUserRoleFromToken(token).equals(UserRoles.ADMIN)) ?
-                    AuthCodes.OK :
-                    AuthCodes.INSUFFICIENT_PRIVILEGES;
-        }
-        return AuthCodes.OK;
-    }
-
-    private boolean tokenIsExpired(String token, Function<String, GenericToken> findFunction) {
-        Date currentTime = new Date();
-        return (currentTime.after(findFunction.apply(token).getValid()));
-    }
-
-    Response generateEmptyResponse() {
-        return new Response(400,
-                "",
-                new HashMap<String, String>() {{
-                    put("", "");
-                }});
-    }
-
     public ResponseEntity generateSuccessfulLogin(AuthRequest request) {
         return showSuccessfulAuthResults(userService.findUserByEmail(request.getEmail()));
     }
@@ -124,7 +86,7 @@ public class SessionService extends BaseService {
 
     private LoginErrorResponse crateLoginErrorResponse(AuthRequest request) {
         LoginErrorResponse errorResponse =
-                new LoginErrorResponse(userService);
+                new LoginErrorResponse();
         errorResponse.addErrorMessages(request);
         return errorResponse;
     }
@@ -139,7 +101,7 @@ public class SessionService extends BaseService {
 
     private RegistrationErrorResponse createErrorResponse(AuthRequest request) {
         RegistrationErrorResponse errorResponse =
-                new RegistrationErrorResponse(userService);
+                new RegistrationErrorResponse();
         errorResponse.addErrorMessages(request);
         return errorResponse;
     }

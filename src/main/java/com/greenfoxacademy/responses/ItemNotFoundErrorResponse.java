@@ -1,6 +1,7 @@
 package com.greenfoxacademy.responses;
 
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.requests.BaseRequest;
 
 /**
  * Created by posam on 2017-02-13.
@@ -16,6 +17,7 @@ public class ItemNotFoundErrorResponse extends ErrorResponse {
     }
 
     @Override
-    public void addErrorMessages(AuthRequest request) {
+    public <T extends BaseRequest> void addErrorMessages(T request) {
+
     }
 }

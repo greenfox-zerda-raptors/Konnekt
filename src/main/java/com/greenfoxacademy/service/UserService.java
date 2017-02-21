@@ -4,6 +4,7 @@ import com.greenfoxacademy.bodies.UserAdminResponse;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.UserRepository;
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.requests.RequestConstants;
 import com.greenfoxacademy.responses.*;
 import com.greenfoxacademy.responses.Error;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,11 @@ import java.util.List;
 
 
 @Service
-public class UserService extends BaseService{
+public class UserService extends BaseService {
 
     private final UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
-    
+
     @PersistenceContext(name = "default")
     private EntityManager em;
 
@@ -45,7 +46,7 @@ public class UserService extends BaseService{
     }
 
     public User findUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+            return userRepository.findByEmail(email);
     }
 
     public User findUserByName(String username) {
@@ -60,22 +61,13 @@ public class UserService extends BaseService{
         return newUser;
     }
 
-    public boolean registrationIsValid(AuthRequest request) {
+    public boolean registrationIsValid(AuthRequest request) { //TODO replace this with new
         return !oneOfRegistrationFieldsIsNull(request) &&
                 !userExists(request.getEmail()) &&
                 emailIsValid(request.getEmail()) &&
                 passwordsMatch(request);
     }
 
-    private boolean emailIsValid(String email) {
-        return email.contains("@") && email.contains(".");
-    }
-
-    public boolean passwordsMatch(AuthRequest request) {
-        return request
-                .getPassword()
-                .equals(request.getPassword_confirmation());
-    }
 
     public boolean userLoginIsValid(AuthRequest request) {
         return !emailOrPasswordIsNull(request) &&
@@ -106,6 +98,24 @@ public class UserService extends BaseService{
     public boolean oneOfRegistrationFieldsIsNull(AuthRequest request) {
         return emailOrPasswordIsNull(request) ||
                 request.getPassword_confirmation() == null;
+    }
+
+    RequestConstants checkEmail(String email) {
+        if (email == null) {
+            return RequestConstants.FIELD_NULL;
+        } else if (!emailIsValid(email)) {
+            return RequestConstants.FIELD_INVALID;
+        } else if (!userExists(email)) {
+            return RequestConstants.DB_SEARCH_RETURNED_NULL;
+        } else {
+            return RequestConstants.FIELD_OK;
+        }
+    }
+
+    RequestConstants checkPasswords(String password, String confirmation) {
+        if (password == null) {
+            return RequestConstants.FIELD_NULL;
+        } else if
     }
 
     public String encryptPassword(String rawPassword) {

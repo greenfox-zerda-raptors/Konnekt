@@ -121,7 +121,7 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     public void testResetPasswordGetWithInvalidToken() throws Exception {
         mockMvc.perform(get("/resetpassword?token={token}", "hahahahahahaha")
                 .contentType(MediaType.APPLICATION_JSON).content(""))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
 
     }
 
@@ -219,8 +219,8 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         assertEquals(AuthCodes.OK, sessionService.tokenIsValid(forgotToken.getToken(), forgotPasswordRepository::findOne, false));
         assertEquals(AuthCodes.SESSION_TOKEN_EXPIRED, sessionService.tokenIsValid(expiredToken.getToken(), forgotPasswordRepository::findOne, false));
 
-        assertEquals(1L, (long) forgotPasswordService.findUserByToken(userIdToken.getToken()).getId());
-        assertEquals(userService.findUserById(1L), forgotPasswordService.findUserByToken(tokenString));
+        assertEquals(1L, (long) forgotPasswordService.obtainUserFromToken(userIdToken.getToken()).getId());
+        assertEquals(userService.findUserById(1L), forgotPasswordService.obtainUserFromToken(tokenString));
 
     }
 

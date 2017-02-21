@@ -2,10 +2,14 @@ package com.greenfoxacademy.service;
 
 import com.greenfoxacademy.config.Profiles;
 import com.greenfoxacademy.domain.ForgotPasswordToken;
+import com.greenfoxacademy.domain.GenericToken;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ForgotPasswordRepository;
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.requests.BaseRequest;
 import com.greenfoxacademy.requests.ForgotPasswordRequest;
+import com.greenfoxacademy.responses.ErrorResponse;
+import com.greenfoxacademy.responses.ForgotPasswordErrorResponse;
 import com.greenfoxacademy.responses.PasswordResetErrorResponse;
 import com.greenfoxacademy.responses.UserResponse;
 import com.sendgrid.*;
@@ -19,30 +23,29 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.function.Function;
 
 @Service
 public class ForgotPasswordService extends BaseService {
 
     private ForgotPasswordRepository forgotPasswordRepository;
     private Environment env;
-    private SessionService sessionService;
     private UserService userService;
+    private final String EMAIL_SUCCESS = "Email sent.";
     private final String EMAIL_PROBLEM = "There was a problem sending your email, please try again later.";
 
     @Autowired
     public ForgotPasswordService(ForgotPasswordRepository forgotPasswordRepository,
                                  Environment env,
-                                 SessionService sessionService,
                                  UserService userService) {
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.env = env;
-        this.sessionService = sessionService;
         this.userService = userService;
     }
 
     private Email from = new Email("konnekt@heroku.com");
 
-    public int sendEmail(ForgotPasswordToken forgotPasswordToken) {
+    public int sendEmail(ForgotPasswordToken forgotPasswordToken) { //TODO cleanup
         User user = forgotPasswordToken.getUser();
         String token = forgotPasswordToken.getToken();
         Date valid = forgotPasswordToken.getValid();
@@ -59,7 +62,7 @@ public class ForgotPasswordService extends BaseService {
         Mail mail = new Mail(from, subject, to, content);
         SendGrid sg = new SendGrid(System.getenv("SENDGRID_API_KEY"));
         Request request = new Request();
-        Response response = sessionService.generateEmptyResponse();
+        Response response = generateEmptyResponse();
         try {
             request.method = Method.POST;
             request.endpoint = "mail/send";
@@ -77,12 +80,9 @@ public class ForgotPasswordService extends BaseService {
     }
 
     public ForgotPasswordToken findToken(String token) {
-        return forgotPasswordRepository.findOne(token);
+        return findToken(token, forgotPasswordRepository::findOne);
     }
 
-    public User findUserByToken(String token) {
-        return forgotPasswordRepository.findOne(token).getUser();
-    }
 
     public void deleteToken(String token) {
         forgotPasswordRepository.delete(token);
@@ -91,13 +91,13 @@ public class ForgotPasswordService extends BaseService {
     public ResponseEntity showForgotPasswordResults(AuthRequest authRequest,
                                                     String token) {
         return (userService.passwordsMatch(authRequest)) ?
-                showOKForgotPasswordResults(authRequest, token) :
+                showForgotPasswordOKResults(authRequest, token) :
                 respondWithBadRequest(createErrorResponse(authRequest));
     }
 
-    private ResponseEntity showOKForgotPasswordResults(AuthRequest authRequest,
+    private ResponseEntity showForgotPasswordOKResults(AuthRequest authRequest,
                                                        String token) {
-        User activeUser = findUserByToken(token);
+        User activeUser = obtainUserFromToken(token, forgotPasswordRepository::findOne);
         userService.setUserPassword(activeUser, authRequest.getPassword());
         deleteToken(token);
         return showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
@@ -107,30 +107,28 @@ public class ForgotPasswordService extends BaseService {
         String token = saveToken(generateToken(), user);
         int responseStatus = sendEmail(findToken(token));
         return (responseStatus == 202) ?
-                showCustomResults("Email sent.", HttpStatus.ACCEPTED) : //TODO rewrite this as json
+                showCustomResults(EMAIL_SUCCESS, HttpStatus.ACCEPTED) : //TODO rewrite this as json
                 showCustomResults(EMAIL_PROBLEM, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    private PasswordResetErrorResponse createErrorResponse(AuthRequest request) { //TODO standardize responses and stop using authrequest (also put that into future spec)
-        PasswordResetErrorResponse errorResponse =
-                new PasswordResetErrorResponse(userService);
+    private <T extends BaseRequest> ErrorResponse createErrorResponse(T request) {
+        ErrorResponse errorResponse = (request instanceof AuthRequest) ?
+                new PasswordResetErrorResponse() :
+                new ForgotPasswordErrorResponse();
         errorResponse.addErrorMessages(request);
         return errorResponse;
     }
 
-    private PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) { //TODO unify overloaded methods with lambda or similar
-        PasswordResetErrorResponse errorResponse =
-                new PasswordResetErrorResponse(userService);
-        errorResponse.addErrorMessagesForForgotRequest(request);
-        return errorResponse;
-    }
-
-    public ResponseEntity generateForgotPasswordError(ForgotPasswordRequest request) {
+    public <T extends BaseRequest> ResponseEntity generateForgotPasswordError(T request) {
         return respondWithBadRequest(createErrorResponse(request));
     }
 
-    public int sessionTokenIsValid(String token, boolean requireAdmin) { //TODO unify with instance in sessionservice, move to baseservice
-        return sessionService.tokenIsValid(token, forgotPasswordRepository::findOne, requireAdmin);
+    public User obtainUserFromToken(String token) {
+        return obtainUserFromToken(token, forgotPasswordRepository::findOne);
+    }
+
+    public int forgotTokenIsValid(String token) {
+        return tokenIsValid(token, forgotPasswordRepository::findOne, false);
     }
 
 }

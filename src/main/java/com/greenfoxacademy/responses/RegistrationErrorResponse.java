@@ -1,6 +1,7 @@
 package com.greenfoxacademy.responses;
 
 import com.greenfoxacademy.requests.AuthRequest;
+import com.greenfoxacademy.requests.BaseRequest;
 import com.greenfoxacademy.service.UserService;
 
 import java.util.ArrayList;
@@ -11,12 +12,10 @@ import java.util.ArrayList;
 
 public class RegistrationErrorResponse extends ErrorResponse {
 
-    public RegistrationErrorResponse(UserService userService) {
-        super(userService);
+    public RegistrationErrorResponse() {
     }
 
-    @Override
-    public void addErrorMessages(AuthRequest request) {
+    public void addErrorMessagesAuth(AuthRequest request) {
         if (userService.oneOfRegistrationFieldsIsNull(request)) {
             errors.add(new Error("Form submission error","All fields must be submitted."));
         } else {
@@ -30,6 +29,13 @@ public class RegistrationErrorResponse extends ErrorResponse {
         }
         if (!userService.passwordsMatch(request)) {
             errors.add(new Error("Password confirmation error", "Passwords do not match."));
+        }
+    }
+
+    @Override
+    public <T extends BaseRequest> void addErrorMessages(T request) {
+        if (request instanceof AuthRequest) {
+            addErrorMessagesAuth((AuthRequest) request);
         }
     }
 
