@@ -3,6 +3,7 @@ package com.greenfoxacademy.controllers;
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
+import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.junit.Before;
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ContextConfiguration(classes = KonnektApplication.class, loader = SpringBootContextLoader.class)
 @ActiveProfiles(Profiles.TEST)
 @Transactional
-public class LoginTest extends AbstractJUnit4SpringContextTests {
+public class AuthenticationControllerTest extends AbstractJUnit4SpringContextTests {
 
     private MockMvc mockMvc;
 
@@ -53,6 +54,8 @@ public class LoginTest extends AbstractJUnit4SpringContextTests {
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
+        Session session = new Session("abcde", userService.findUserById(1L));
+        sessionService.saveSession(session);
     }
 
     @Test
@@ -74,6 +77,21 @@ public class LoginTest extends AbstractJUnit4SpringContextTests {
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testLogout() throws Exception {
+        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
+        String validTestJson = createTestJson(validTestLogin);
+
+        mockMvc.perform(post("/login").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/logout").with(csrf())
+                .header("session_token", "abcde")
+                .contentType(MediaType.APPLICATION_JSON).content(""))
+                .andExpect(status().isOk());
     }
 
     private String createTestJson(TestLogin testLogin) {

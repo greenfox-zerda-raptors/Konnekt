@@ -20,7 +20,7 @@ public class TagService extends BaseService {
     private TagRepository tagRepository;
 
     @Autowired
-    public TagService(TagRepository tagRepository){
+    public TagService(TagRepository tagRepository) {
         this.tagRepository = tagRepository;
     }
 
@@ -40,11 +40,11 @@ public class TagService extends BaseService {
         return tagRepository.findOne(id);
     }
 
-    public void saveTag(Tag tag){
+    public void saveTag(Tag tag) {
         tagRepository.save(tag);
     }
 
-    public List<Tag> recommendTagsByBeginning(String rawPattern){
+    public List<Tag> recommendTagsByBeginning(String rawPattern) {
         String pattern = rawPattern.concat("%");
         return tagRepository.findByBeginningLike(pattern);
     }

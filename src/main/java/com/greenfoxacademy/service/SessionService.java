@@ -14,7 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.net.URI;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.function.Function;
@@ -25,6 +27,7 @@ import java.util.function.Function;
 @Service
 public class SessionService extends BaseService {
     private final SessionRepository sessionRepository;
+    private SecureRandom random = new SecureRandom();
     private UserService userService;
 
     @Autowired
@@ -40,6 +43,14 @@ public class SessionService extends BaseService {
         return currentSession;
     }
 
+    public void deleteSession(HttpHeaders headers) {
+        Session currentSession = extractSessionTokenFromHeader(headers);
+        sessionRepository.delete(currentSession);
+    }
+
+    public String generateToken() {
+        return new BigInteger(130, random).toString(32);
+    }
 
     public void saveSession(Session currentSession) {
         sessionRepository.save(currentSession);
@@ -54,6 +65,11 @@ public class SessionService extends BaseService {
                 .getFirst("session_token"))
                 .getUser()
                 .getId();
+    }
+
+    public Session extractSessionTokenFromHeader(HttpHeaders headers) {
+        return sessionRepository.findOne(headers
+                .getFirst("session_token"));
     }
 
     public String obtainUserRoleFromToken(String token) {
