@@ -170,13 +170,13 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void sessionTokenTests() {
         String tokenString = forgotPasswordService.generateToken();
-        Session sessionToken = new Session(5*60*1000);
+        Session sessionToken = new Session(5);
         sessionToken.setToken(sessionService.generateToken());
-        Session expiredSessionToken = new Session(-5*60*1000);
+        Session expiredSessionToken = new Session(-5);
         expiredSessionToken.setToken(sessionService.generateToken());
-        Session userIdSessionToken = new Session(userService.findUserById(1L), 5*60*1000);
+        Session userIdSessionToken = new Session(userService.findUserById(1L), 5);
         userIdSessionToken.setToken(sessionService.generateToken());
-        Session manualSessionToken = new Session(tokenString, userService.findUserById(1L), 5*60*1000);
+        Session manualSessionToken = new Session(tokenString, userService.findUserById(1L), 5);
         List<Session> sessionList = new LinkedList<>();
         sessionList.add(sessionToken);
         sessionList.add(expiredSessionToken);
@@ -193,20 +193,20 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
         Date now = new Date();
         assertTrue(now.after(sessionRepository.findOne(tokenString).getTimestamp()));
-        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT() > 0);
+        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT_IN_MIN() > 0);
 
     }
 
     @Test
     public void forgotTokenTests() {
-        ForgotPasswordToken forgotToken = new ForgotPasswordToken(5*60*1000);
+        ForgotPasswordToken forgotToken = new ForgotPasswordToken(5);
         forgotToken.setToken(forgotPasswordService.generateToken());
-        ForgotPasswordToken expiredToken = new ForgotPasswordToken(-5*60*1000);
+        ForgotPasswordToken expiredToken = new ForgotPasswordToken(-5);
         expiredToken.setToken(forgotPasswordService.generateToken());
-        ForgotPasswordToken userIdToken = new ForgotPasswordToken(userService.findUserById(1L), 5*60*1000);
+        ForgotPasswordToken userIdToken = new ForgotPasswordToken(userService.findUserById(1L), 5);
         userIdToken.setToken(forgotPasswordService.generateToken());
         String tokenString = forgotPasswordService.generateToken();
-        ForgotPasswordToken manualToken = new ForgotPasswordToken(tokenString, userService.findUserById(1L), 5*60*1000);
+        ForgotPasswordToken manualToken = new ForgotPasswordToken(tokenString, userService.findUserById(1L), 5);
 
         List<ForgotPasswordToken> forgotList = new LinkedList<>();
         forgotList.add(forgotToken);

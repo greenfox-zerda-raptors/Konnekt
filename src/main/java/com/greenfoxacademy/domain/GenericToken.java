@@ -25,40 +25,44 @@ public abstract class GenericToken {
 
 
     @Transient
-    final int DEFAULT_TIMEOUT = 30*60*1000;
+    final int DEFAULT_TIMEOUT_IN_MIN = 30;
+    @Transient
+    final int MINUTE_IN_MILLISEC = 60000;
+    @Transient
+    long currentTimeInMillisec;
 
     public GenericToken() {
-        long current_time=System.currentTimeMillis();
-        this.timestamp=new Date(current_time);
-        this.valid=new Date(current_time+DEFAULT_TIMEOUT);
+        setTimestamp();
+        this.valid=new Date(currentTimeInMillisec+DEFAULT_TIMEOUT_IN_MIN*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(int minutes) {
-        long current_time=System.currentTimeMillis();
-        this.timestamp=new Date(current_time);
-        this.valid=new Date(current_time+minutes);
+        setTimestamp();
+        this.valid=new Date(currentTimeInMillisec+minutes*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(User user, int minutes) {
+        setTimestamp();
         this.user=user;
-        long current_time=System.currentTimeMillis();
-        this.timestamp=new Date(current_time);
-        this.valid=new Date(current_time+minutes);
+        this.valid=new Date(currentTimeInMillisec+minutes*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(String token, User user) {
+        setTimestamp();
         this.user = user;
         this.token = token;
-        long current_time=System.currentTimeMillis();
-        this.timestamp=new Date(current_time);
-        this.valid=new Date(current_time+DEFAULT_TIMEOUT);
+        this.valid=new Date(currentTimeInMillisec+DEFAULT_TIMEOUT_IN_MIN*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(String token, User user, int minutes) {
+        setTimestamp();
         this.user = user;
         this.token = token;
-        long current_time=System.currentTimeMillis();
-        this.timestamp=new Date(current_time);
-        this.valid=new Date(current_time+minutes);
+        this.valid=new Date(currentTimeInMillisec+minutes*MINUTE_IN_MILLISEC);
+    }
+
+    public void setTimestamp(){
+        this.currentTimeInMillisec=System.currentTimeMillis();
+        this.timestamp=new Date(currentTimeInMillisec);
     }
 }
