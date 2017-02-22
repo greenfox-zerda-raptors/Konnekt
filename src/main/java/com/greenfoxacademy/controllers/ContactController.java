@@ -1,7 +1,7 @@
 package com.greenfoxacademy.controllers;
 
 import com.greenfoxacademy.requests.ContactRequest;
-import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.constants.AuthCodes;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;

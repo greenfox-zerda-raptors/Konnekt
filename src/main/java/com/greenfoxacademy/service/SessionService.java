@@ -1,5 +1,7 @@
 package com.greenfoxacademy.service;
 
+import com.greenfoxacademy.constants.AuthCodes;
+import com.greenfoxacademy.constants.UserRoles;
 import com.greenfoxacademy.domain.GenericToken;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
@@ -132,17 +134,6 @@ public class SessionService extends BaseService {
         return new ResponseEntity<>(new UserResponse(user.getId()),
                 generateHeadersWithToken(currentSession.getToken()),
                 HttpStatus.CREATED);
-    }
-
-    public ResponseEntity generateLoginError(AuthRequest request) {
-        return showCustomResults(crateLoginErrorResponse(request), HttpStatus.UNAUTHORIZED);
-    }
-
-    private LoginErrorResponse crateLoginErrorResponse(AuthRequest request) {
-        LoginErrorResponse errorResponse =
-                new LoginErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
     }
 
     public ResponseEntity generateSuccessfulRegistration(AuthRequest request) {

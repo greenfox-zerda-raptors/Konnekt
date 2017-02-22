@@ -3,7 +3,7 @@ package com.greenfoxacademy.controllers;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.requests.ForgotPasswordRequest;
-import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.constants.AuthCodes;
 import com.greenfoxacademy.responses.NotAuthenticatedErrorResponse;
 import com.greenfoxacademy.responses.UserResponse;
 import com.greenfoxacademy.service.ForgotPasswordService;
@@ -51,7 +51,7 @@ public class ForgotPasswordController {
             return forgotPasswordService.showCustomResults(new UserResponse(activeUser.getId()), HttpStatus.OK);
         } else {
             NotAuthenticatedErrorResponse response =
-                    new NotAuthenticatedErrorResponse(forgotPasswordService);
+                    new NotAuthenticatedErrorResponse();
             response.addErrorMessages(authResult);
             return forgotPasswordService.respondWithBadRequest(response);
         }

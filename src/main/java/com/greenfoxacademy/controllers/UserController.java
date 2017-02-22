@@ -1,8 +1,8 @@
 package com.greenfoxacademy.controllers;
 
-import com.greenfoxacademy.bodies.UserAdminResponse;
+import com.greenfoxacademy.bodies.UserAdminBody;
 import com.greenfoxacademy.domain.User;
-import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.constants.AuthCodes;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +53,12 @@ public class UserController {
 
     @PutMapping("/user/{id}")
     public ResponseEntity editUser(@RequestHeader HttpHeaders headers,
-                                   @RequestBody UserAdminResponse userAdminResponse,
+                                   @RequestBody UserAdminBody userAdminBody,
                                    @PathVariable("id") long id) {
         int authResult = sessionService.sessionIsValid(headers, true);
         if (authResult == AuthCodes.OK) {
             User user = userService.findUserById(id);
-            return userService.showEditingResults(userAdminResponse, user);
+            return userService.showEditingResults(userAdminBody, user);
         } else {
             return userService.respondWithUnauthorized(authResult);
         }

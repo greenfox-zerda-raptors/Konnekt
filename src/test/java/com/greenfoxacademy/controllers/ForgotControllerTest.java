@@ -9,7 +9,7 @@ import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.repository.ForgotPasswordRepository;
 import com.greenfoxacademy.repository.SessionRepository;
 import com.greenfoxacademy.repository.UserRepository;
-import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.constants.AuthCodes;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.ForgotPasswordService;
 import com.greenfoxacademy.service.SessionService;

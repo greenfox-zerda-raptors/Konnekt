@@ -1,5 +1,6 @@
 package com.greenfoxacademy.responses;
 
+import com.greenfoxacademy.constants.AuthCodes;
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.service.ForgotPasswordService;
 
@@ -9,10 +10,6 @@ import com.greenfoxacademy.service.ForgotPasswordService;
 public class NotAuthenticatedErrorResponse extends ErrorResponse {
 
     public NotAuthenticatedErrorResponse() {
-    }
-
-    public NotAuthenticatedErrorResponse(ForgotPasswordService forgotPasswordService) {
-        super(forgotPasswordService);
     }
 
     public NotAuthenticatedErrorResponse(Error error) {

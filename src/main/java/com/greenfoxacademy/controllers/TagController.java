@@ -1,6 +1,6 @@
 package com.greenfoxacademy.controllers;
 
-import com.greenfoxacademy.responses.AuthCodes;
+import com.greenfoxacademy.constants.AuthCodes;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
