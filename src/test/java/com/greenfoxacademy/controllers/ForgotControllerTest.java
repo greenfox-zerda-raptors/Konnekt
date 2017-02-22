@@ -195,8 +195,8 @@ public class ForgotControllerTest extends AbstractJUnit4SpringContextTests {
         httpHeaders.set("session_token", tokenString);
         assertEquals(1L, (long) sessionService.obtainUserIdFromHeaderToken(httpHeaders));
         Date now = new Date();
-        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT() > 0);
-
+        assertTrue(now.after(sessionRepository.findOne(tokenString).getTimestamp()));
+        assertTrue(sessionRepository.findOne(tokenString).getDEFAULT_TIMEOUT_IN_MIN() > 0);
     }
 
     @Test

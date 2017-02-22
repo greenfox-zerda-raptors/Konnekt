@@ -23,52 +23,46 @@ public abstract class GenericToken {
     @Temporal(value = TemporalType.TIMESTAMP)
     Date valid;
 
+
     @Transient
-    final int DEFAULT_TIMEOUT = 30;
+    final int DEFAULT_TIMEOUT_IN_MIN = 30;
+    @Transient
+    final int MINUTE_IN_MILLISEC = 60000;
+    @Transient
+    long currentTimeInMillisec;
 
     public GenericToken() {
-        this.timestamp = new Date();
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(this.timestamp);
-        cal.add(Calendar.MINUTE, DEFAULT_TIMEOUT);
-        this.valid = cal.getTime();
+        setTimestamp();
+        this.valid=new Date(currentTimeInMillisec+DEFAULT_TIMEOUT_IN_MIN*MINUTE_IN_MILLISEC);
     }
 
-
     public GenericToken(int minutes) {
-        this.timestamp = new Date();
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(this.timestamp);
-        cal.add(Calendar.MINUTE, minutes);
-        this.valid = cal.getTime();
+        setTimestamp();
+        this.valid=new Date(currentTimeInMillisec+minutes*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(User user, int minutes) {
-        this.timestamp = new Date();
-        this.user = user;
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(this.timestamp);
-        cal.add(Calendar.MINUTE, minutes);
-        this.valid = cal.getTime();
+        setTimestamp();
+        this.user=user;
+        this.valid=new Date(currentTimeInMillisec+minutes*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(String token, User user) {
-        this.timestamp = new Date();
+        setTimestamp();
         this.user = user;
         this.token = token;
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(this.timestamp);
-        cal.add(Calendar.MINUTE, DEFAULT_TIMEOUT);
-        this.valid = cal.getTime();
+        this.valid=new Date(currentTimeInMillisec+DEFAULT_TIMEOUT_IN_MIN*MINUTE_IN_MILLISEC);
     }
 
     public GenericToken(String token, User user, int minutes) {
-        this.timestamp = new Date();
+        setTimestamp();
         this.user = user;
         this.token = token;
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(this.timestamp);
-        cal.add(Calendar.MINUTE, minutes);
-        this.valid = cal.getTime();
+        this.valid=new Date(currentTimeInMillisec+minutes*MINUTE_IN_MILLISEC);
+    }
+
+    public void setTimestamp(){
+        this.currentTimeInMillisec=System.currentTimeMillis();
+        this.timestamp=new Date(currentTimeInMillisec);
     }
 }
