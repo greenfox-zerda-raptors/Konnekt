@@ -24,6 +24,6 @@ public final class Valid {
 
     public static final int[] register = new int[]{UNIQUE, MATCH, MATCH};
     public static final int[] login = new int[]{AUTH, AUTH, NOT_REQUIRED};
-    public static final int[] forgot = new int[]{AUTH, NOT_REQUIRED, NOT_REQUIRED};
+    public static final int[] forgot = new int[]{REQUIRED, NOT_REQUIRED, NOT_REQUIRED};
     public static final int[] reset = new int[]{NOT_REQUIRED, MATCH, MATCH};
 }

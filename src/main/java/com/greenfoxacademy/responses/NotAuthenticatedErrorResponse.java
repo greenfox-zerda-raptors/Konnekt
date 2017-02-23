@@ -32,7 +32,7 @@ public class NotAuthenticatedErrorResponse extends ErrorResponse {
         }
     }
 
-    @Override
+
     public void addErrorMessages(AuthRequest request) {
     }
 }

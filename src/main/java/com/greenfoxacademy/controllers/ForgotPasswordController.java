@@ -1,5 +1,6 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.constants.Valid;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.requests.AuthRequest;
 import com.greenfoxacademy.requests.ForgotPasswordRequest;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.ArrayList;
 
 /**
  * Created by posam on 2017-02-01.
@@ -36,11 +39,12 @@ public class ForgotPasswordController {
     }
 
     @PostMapping("/forgotpassword")
-    public ResponseEntity sendMailForNewPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
-        String userMail = forgotPasswordRequest.getEmail();
-        return (userService.userExists(userMail)) ?
+    public ResponseEntity sendMailForNewPassword(@RequestBody AuthRequest authRequest) {
+        ArrayList<Valid.issues>[] valid = userService.validateAuthRequest(authRequest, Valid.forgot);
+        String userMail = authRequest.getEmail();
+        return (userService.authRequestIsValid(valid)) ?
                 forgotPasswordService.generateForgotPasswordSuccess(userService.findUserByEmail(userMail)) :
-                forgotPasswordService.generateForgotPasswordError(forgotPasswordRequest);
+                forgotPasswordService.generateForgotPasswordError(valid);
     }
 
     @GetMapping("/resetpassword")

@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
+
 /**
  * Created by JadeTeam on 1/20/2017. Register new user
  */
@@ -26,9 +28,10 @@ public class RegistrationController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody AuthRequest request) {
-        return (userService.registrationIsValid(userService.validateAuthRequest(request, Valid.register)) ?
+        ArrayList<Valid.issues>[] valid = userService.validateAuthRequest(request, Valid.register);
+        return (userService.authRequestIsValid(valid) ?
                 sessionService.generateSuccessfulRegistration(request) :
-                sessionService.generateRegistrationError(request));
+                sessionService.generateRegistrationError(valid));
     }
 
 }

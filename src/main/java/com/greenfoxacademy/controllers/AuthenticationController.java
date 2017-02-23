@@ -1,9 +1,10 @@
 package com.greenfoxacademy.controllers;
 
+import com.greenfoxacademy.constants.Valid;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.requests.AuthRequest;
-import com.greenfoxacademy.responses.LoginErrorResponse;
+import com.greenfoxacademy.responses.ErrorResponse;
 import com.greenfoxacademy.responses.UserResponse;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by BSoptei on 1/31/2017. Login endpoint
@@ -35,9 +37,10 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody AuthRequest request) throws IOException {
-        return (userService.userLoginIsValid(request)) ?
+        ArrayList<Valid.issues>[] valid = userService.validateAuthRequest(request, Valid.login);
+        return (userService.authRequestIsValid(valid)) ?
                 generateSuccessfulLogin(request) :
-                generateLoginError(request);
+                generateLoginError(valid);
     }
 
 
@@ -55,16 +58,14 @@ public class AuthenticationController {
                 HttpStatus.CREATED);
     }
 
-    private ResponseEntity generateLoginError(AuthRequest request) {
-        return new ResponseEntity<>(crateErrorResponse(request),
-                sessionService.generateHeaders(),
+    private ResponseEntity generateLoginError(ArrayList<Valid.issues>[] issues) {
+        return sessionService.showCustomResults(
+                crateErrorResponse(issues),
                 HttpStatus.UNAUTHORIZED);
     }
 
-    private LoginErrorResponse crateErrorResponse(AuthRequest request) {
-        LoginErrorResponse errorResponse =
-                new LoginErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
+    private ErrorResponse crateErrorResponse(ArrayList<Valid.issues>[] issues) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        return errorResponse.addErrorMessages(issues, ErrorResponse.AuthType.LOGIN);
     }
 }

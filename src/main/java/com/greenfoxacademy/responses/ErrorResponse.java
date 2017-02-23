@@ -3,10 +3,7 @@ package com.greenfoxacademy.responses;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.greenfoxacademy.constants.Valid;
-import com.greenfoxacademy.requests.AuthRequest;
-import com.greenfoxacademy.service.ForgotPasswordService;
 import com.greenfoxacademy.service.UserService;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,39 +12,48 @@ import java.util.HashMap;
  * Created by BSoptei on 2/1/2017.
  */
 @JsonSerialize
-public abstract class ErrorResponse {
+public class ErrorResponse {
     @JsonProperty
     ArrayList<Error> errors = new ArrayList<>();
-    
+    private static HashMap<Valid.issues, Error> registration = new HashMap<>();
+    private static HashMap<Valid.issues, Error> forgotReset = new HashMap<>();
+    private static HashMap<Valid.issues, Error> login = new HashMap<>();
+
+    public enum AuthType {
+        REGISTRATION (registration), RESET (forgotReset), LOGIN (login);
+
     private HashMap<Valid.issues, Error> messages = new HashMap<>();
-
-    protected UserService userService;
-
-    public ErrorResponse(UserService userService) {
-        this.userService = userService;
+    AuthType(HashMap<Valid.issues, Error> messages) {
+        this.messages = messages;
+    }
     }
 
-    public ErrorResponse(Error error) {
+    ErrorResponse(Error error) {
         this.errors.add(error);
     }
 
     public ErrorResponse() {
-        messages.put(Valid.issues.INVALID, new Error("invalid placeholder", "invalid"));
-        messages.put(Valid.issues.MISMATCH, new Error("mismatch placeholder", "mismatch"));
-        messages.put(Valid.issues.NOT_FOUND, new Error("not found placeholder", "not found"));
-        messages.put(Valid.issues.NOT_UNIQUE, new Error("not unique placeholder", "not unique"));
-        messages.put(Valid.issues.UNAUTHORIZED, new Error("unauthorized placeholder", "unauthorized"));
+        registration.put(Valid.issues.NULL, new Error("Form submission error", "All fields must be submitted"));
+        registration.put(Valid.issues.INVALID, new Error("Invalid email", "Please enter a valid email"));
+        registration.put(Valid.issues.MISMATCH, new Error("Password confirmation error", "Passwords do not match"));
+        registration.put(Valid.issues.NOT_FOUND, new Error("not found placeholder", "not found"));
+        registration.put(Valid.issues.NOT_UNIQUE, new Error("Email error", "User already registered with given email"));
+        registration.put(Valid.issues.UNAUTHORIZED, new Error("unauthorized placeholder", "unauthorized"));
+        forgotReset.put(Valid.issues.NULL, new Error("Form submission error", "All fields must be submitted"));
+        forgotReset.put(Valid.issues.MISMATCH, new Error("Password confirmation error", "Passwords do not match"));
+        forgotReset.put(Valid.issues.NOT_FOUND, new Error("User error", "No registered user with the given email found!"));
+        login.put(Valid.issues.NULL, new Error("Form submission error","All fields must be submitted."));
+        login.put(Valid.issues.UNAUTHORIZED, new Error("Authentication error", "Wrong email or password."));
     }
 
-    public abstract void addErrorMessages(AuthRequest request);
-
-    public void addErrorMessages(ArrayList<Valid.issues>[] issues) {
+    public ErrorResponse addErrorMessages(ArrayList<Valid.issues>[] issues, AuthType authType) {
         for (ArrayList a : issues) {
             for (Valid.issues i : Valid.issues.values()) {
                 if (a.contains(i)) {
-                    errors.add(messages.get(i));
+                    errors.add(authType.messages.get(i));
                 }
             }
         }
+        return this;
     }
 }

@@ -10,7 +10,6 @@ public class BadRequestErrorResponse extends ErrorResponse {
         super(error);
     }
 
-    @Override
     public void addErrorMessages(AuthRequest request) {
 
     }
