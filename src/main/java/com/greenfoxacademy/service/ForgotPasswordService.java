@@ -1,12 +1,12 @@
 package com.greenfoxacademy.service;
 
 import com.greenfoxacademy.config.Profiles;
+import com.greenfoxacademy.constants.Valid;
 import com.greenfoxacademy.domain.ForgotPasswordToken;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ForgotPasswordRepository;
 import com.greenfoxacademy.requests.AuthRequest;
-import com.greenfoxacademy.requests.ForgotPasswordRequest;
-import com.greenfoxacademy.responses.PasswordResetErrorResponse;
+import com.greenfoxacademy.responses.ErrorResponse;
 import com.greenfoxacademy.responses.UserResponse;
 import com.sendgrid.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -90,9 +91,10 @@ public class ForgotPasswordService extends BaseService {
 
     public ResponseEntity showForgotPasswordResults(AuthRequest authRequest,
                                                     String token) {
-        return (userService.passwordsMatch(authRequest)) ?
+        ArrayList<Valid.issues>[] valid = userService.validateAuthRequest(authRequest, Valid.reset);
+        return (userService.authRequestIsValid(valid)) ?
                 showOKForgotPasswordResults(authRequest, token) :
-                respondWithBadRequest(createErrorResponse(authRequest));
+                respondWithBadRequest(createErrorResponse(valid));
     }
 
     private ResponseEntity showOKForgotPasswordResults(AuthRequest authRequest,
@@ -110,23 +112,13 @@ public class ForgotPasswordService extends BaseService {
                 showCustomResults("Email sent.", HttpStatus.ACCEPTED) :
                 showCustomResults(EMAIL_PROBLEM, HttpStatus.SERVICE_UNAVAILABLE);
     }
-
-    private PasswordResetErrorResponse createErrorResponse(AuthRequest request) { //TODO standardize responses and stop using authrequest (also put that into future spec)
-        PasswordResetErrorResponse errorResponse =
-                new PasswordResetErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
+    public ResponseEntity generateForgotPasswordError(ArrayList<Valid.issues>[] issues) {
+        return respondWithBadRequest(createErrorResponse(issues));
     }
 
-    private PasswordResetErrorResponse createErrorResponse(ForgotPasswordRequest request) { //TODO unify overloaded methods with lambda or similar
-        PasswordResetErrorResponse errorResponse =
-                new PasswordResetErrorResponse(userService);
-        errorResponse.addErrorMessagesForForgotRequest(request);
-        return errorResponse;
-    }
-
-    public ResponseEntity generateForgotPasswordError(ForgotPasswordRequest request) {
-        return respondWithBadRequest(createErrorResponse(request));
+    private ErrorResponse createErrorResponse(ArrayList<Valid.issues>[] issues) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        return errorResponse.addErrorMessages(issues, ErrorResponse.AuthType.RESET);
     }
 
     public int sessionTokenIsValid(String token, boolean requireAdmin) {

@@ -15,7 +15,6 @@ public class ItemNotFoundErrorResponse extends ErrorResponse {
 
     }
 
-    @Override
     public void addErrorMessages(AuthRequest request) {
     }
 }

@@ -2,13 +2,13 @@ package com.greenfoxacademy.controllers;
 
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
-import com.greenfoxacademy.bodies.UserAdminResponse;
+import com.greenfoxacademy.bodies.UserAdminBody;
 import com.greenfoxacademy.config.Profiles;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.repository.ContactRepository;
 import com.greenfoxacademy.repository.UserRepository;
-import com.greenfoxacademy.responses.UserRoles;
+import com.greenfoxacademy.constants.UserRoles;
 import com.greenfoxacademy.service.ContactService;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
@@ -111,7 +111,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testUsersPutWithImproperPrivileges() throws Exception {
         int id = 2;
-        String validRequest = createTestJson(new UserAdminResponse(user));
+        String validRequest = createTestJson(new UserAdminBody(user));
         mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", token)
@@ -124,7 +124,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     public void testIdChangeRejectionOnUsersPut() throws Exception {
         long id = 2;
         long newId = 3;
-        UserAdminResponse response = new UserAdminResponse();
+        UserAdminBody response = new UserAdminBody();
         response.setUser_id(newId);
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
@@ -143,9 +143,9 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     public void testUsersPutWithValidRequest() throws Exception {
         long id = 2;
         String newFirstName = "Alejandro";
-        UserAdminResponse userAdminResponse = new UserAdminResponse(user);
-        userAdminResponse.setFirstName(newFirstName);
-        String updatedInfo = createTestJson(userAdminResponse);
+        UserAdminBody userAdminBody = new UserAdminBody(user);
+        userAdminBody.setFirstName(newFirstName);
+        String updatedInfo = createTestJson(userAdminBody);
         mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
@@ -158,7 +158,7 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     public void testUsersPutWithInvalidRequest() throws Exception {
         int id = 2;
         user.setUserRole("a legmenőbb ember");
-        String updatedInfo = createTestJson(new UserAdminResponse(user));
+        String updatedInfo = createTestJson(new UserAdminBody(user));
         user.setUserRole(UserRoles.USER);
         mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -170,8 +170,8 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
     @Test
     public void testUsersPutWithNonexistentID() throws Exception {
         long id = -1;
-        UserAdminResponse userAdminResponse = new UserAdminResponse(user);
-        String updatedInfo = createTestJson(userAdminResponse);
+        UserAdminBody userAdminBody = new UserAdminBody(user);
+        String updatedInfo = createTestJson(userAdminBody);
         mockMvc.perform(put("/user/{id}", id)
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
                 .header("session_token", adminToken)
@@ -241,9 +241,9 @@ public class UserControllerTest extends AbstractJUnit4SpringContextTests {
                 .andExpect(status().isNotFound());
     }
 
-    private String createTestJson(UserAdminResponse userAdminResponse) {
+    private String createTestJson(UserAdminBody userAdminBody) {
         Gson testContactConverter = new Gson();
-        return testContactConverter.toJson(userAdminResponse);
+        return testContactConverter.toJson(userAdminBody);
     }
 
 }

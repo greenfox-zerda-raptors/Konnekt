@@ -11,7 +11,6 @@ import com.greenfoxacademy.responses.Error;
 import com.greenfoxacademy.responses.ItemNotFoundErrorResponse;
 import com.greenfoxacademy.responses.MultipleContactsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -123,7 +122,7 @@ public class ContactService extends BaseService {
         contactRepository.delete(contactId);
     }
 
-    public boolean contactBelongsToUser(Long contactId, Long userId) {
+    public boolean contactBelongsToUserOrIsAdmin(Long contactId, Long userId) {
         return contactExists(contactId) &&
                 (contactIdMatchesUserId(contactId, userId) ||
                         userService.userIsAdmin(userId));
@@ -179,7 +178,7 @@ public class ContactService extends BaseService {
     }
 
     public ResponseEntity showDeletingResults(Long contactId, Long userId) {
-        return (contactBelongsToUser(contactId, userId)) ?
+        return (contactBelongsToUserOrIsAdmin(contactId, userId)) ?
                 showDeletingOKResults(contactId) :
                 respondWithBadRequest(badFormat);
     }
@@ -209,7 +208,7 @@ public class ContactService extends BaseService {
     private boolean editingParametersAreValid(Long contactId,
                                               Long userId,
                                               ContactRequest contactRequest) {
-        return contactBelongsToUser(contactId, userId) &&
+        return contactBelongsToUserOrIsAdmin(contactId, userId) &&
                 contactRequestIsValid(contactRequest);
     }
 

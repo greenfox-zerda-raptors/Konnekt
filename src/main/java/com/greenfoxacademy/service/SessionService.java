@@ -1,5 +1,8 @@
 package com.greenfoxacademy.service;
 
+import com.greenfoxacademy.constants.AuthCodes;
+import com.greenfoxacademy.constants.UserRoles;
+import com.greenfoxacademy.constants.Valid;
 import com.greenfoxacademy.domain.GenericToken;
 import com.greenfoxacademy.domain.Session;
 import com.greenfoxacademy.domain.User;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.function.Function;
@@ -134,30 +138,17 @@ public class SessionService extends BaseService {
                 HttpStatus.CREATED);
     }
 
-    public ResponseEntity generateLoginError(AuthRequest request) {
-        return showCustomResults(crateLoginErrorResponse(request), HttpStatus.UNAUTHORIZED);
-    }
-
-    private LoginErrorResponse crateLoginErrorResponse(AuthRequest request) {
-        LoginErrorResponse errorResponse =
-                new LoginErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
-    }
-
     public ResponseEntity generateSuccessfulRegistration(AuthRequest request) {
         return showSuccessfulAuthResults(userService.createUser(request));
     }
 
-    public ResponseEntity generateRegistrationError(AuthRequest request) {
-        return showCustomResults(createErrorResponse(request), HttpStatus.FORBIDDEN);
+    public ResponseEntity generateRegistrationError(ArrayList<Valid.issues>[] issues) {
+        return showCustomResults(createErrorResponse(issues), HttpStatus.FORBIDDEN);
     }
 
-    private RegistrationErrorResponse createErrorResponse(AuthRequest request) {
-        RegistrationErrorResponse errorResponse =
-                new RegistrationErrorResponse(userService);
-        errorResponse.addErrorMessages(request);
-        return errorResponse;
+    private ErrorResponse createErrorResponse(ArrayList<Valid.issues>[] issues) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        return errorResponse.addErrorMessages(issues, ErrorResponse.AuthType.REGISTRATION);
     }
 
     public ResponseEntity respondWithNotAuthenticated(int authResult) {

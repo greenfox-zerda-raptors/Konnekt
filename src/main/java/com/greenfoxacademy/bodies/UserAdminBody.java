@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @JsonSerialize
 @NoArgsConstructor
-public class UserAdminResponse {
+public class UserAdminBody {
 
     @JsonProperty
     private Long user_id;
@@ -30,7 +30,7 @@ public class UserAdminResponse {
     private boolean enabled;
 
 
-    public UserAdminResponse(User user) {
+    public UserAdminBody(User user) {
         this.user_id = user.getId();
         this.email = user.getEmail();
         this.firstName = user.getFirstName();
