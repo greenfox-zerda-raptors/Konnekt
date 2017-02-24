@@ -56,7 +56,7 @@ public class RegistrationControllerTest extends AbstractJUnit4SpringContextTests
 
     @Test
     public void testRegisterWithValidData() throws Exception {
-        TestRegistration validTestRegistration = new TestRegistration("a@b.c", "12345", "12345");
+        TestRegistration validTestRegistration = new TestRegistration("a@b.c", "12345678", "12345678");
         String validTestJson = createTestJson(validTestRegistration);
         mockMvc.perform(post("/register").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(validTestJson))

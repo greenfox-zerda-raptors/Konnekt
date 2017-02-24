@@ -34,7 +34,8 @@ public class ErrorResponse {
 
     public ErrorResponse() {
         registration.put(Valid.issues.NULL, new Error("Form submission error", "All fields must be submitted"));
-        registration.put(Valid.issues.INVALID, new Error("Invalid email", "Please enter a valid email"));
+        registration.put(Valid.issues.INVALID_EMAIL, new Error("Invalid email", "Please enter a valid email"));
+        registration.put(Valid.issues.INVALID_PASS, new Error("Form submission error","Password must be at least 8 characters long."));
         registration.put(Valid.issues.MISMATCH, new Error("Password confirmation error", "Passwords do not match"));
         registration.put(Valid.issues.NOT_FOUND, new Error("not found placeholder", "not found"));
         registration.put(Valid.issues.NOT_UNIQUE, new Error("Email error", "User already registered with given email"));
@@ -47,10 +48,11 @@ public class ErrorResponse {
     }
 
     public ErrorResponse addErrorMessages(ArrayList<Valid.issues>[] issues, AuthType authType) {
-        for (ArrayList a : issues) {
-            for (Valid.issues i : Valid.issues.values()) {
-                if (a.contains(i)) {
-                    errors.add(authType.messages.get(i));
+        for (int i = 0; i < issues.length; i++) {
+            ArrayList a = issues[i];
+            for (Valid.issues iss : Valid.issues.values()) {
+                if (a.contains(iss)) {
+                    errors.add(authType.messages.get(iss));
                 }
             }
         }

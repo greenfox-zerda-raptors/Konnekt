@@ -3,7 +3,9 @@ package com.greenfoxacademy.controllers;
 import com.google.gson.Gson;
 import com.greenfoxacademy.KonnektApplication;
 import com.greenfoxacademy.config.Profiles;
+import com.greenfoxacademy.constants.UserRoles;
 import com.greenfoxacademy.domain.Session;
+import com.greenfoxacademy.domain.User;
 import com.greenfoxacademy.service.SessionService;
 import com.greenfoxacademy.service.UserService;
 import org.junit.Before;
@@ -51,16 +53,22 @@ public class AuthenticationControllerTest extends AbstractJUnit4SpringContextTes
     @Autowired
     private WebApplicationContext context;
 
+    private final String testEmail = "sanyi@sanyi.sanyi";
+    private final String testPassword = "sanyiakiraly";
+
     @Before
     public void setup() throws Exception {
         this.mockMvc = webAppContextSetup(context).build();
-        Session session = new Session("abcde", userService.findUserById(1L));
+        User testUser = new User("Sanyi", userService.encryptPassword(testPassword), true, UserRoles.USER);
+        testUser.setEmail(testEmail);
+        userService.save(testUser);
+        Session session = new Session("abcde", userService.findUserByEmail(testEmail));
         sessionService.saveSession(session);
     }
 
     @Test
     public void testLoginWithValidCredentials() throws Exception {
-        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
+        TestLogin validTestLogin = new TestLogin(testEmail, testPassword);
         String validTestJson = createTestJson(validTestLogin);
         mockMvc.perform(post("/login").with(csrf())
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
@@ -71,17 +79,17 @@ public class AuthenticationControllerTest extends AbstractJUnit4SpringContextTes
 
     @Test
     public void testLoginWithBadPassword() throws Exception {
-        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "12345");
-        String validTestJson = createTestJson(validTestLogin);
+        TestLogin invalidTestLogin = new TestLogin(testEmail, "1234578");
+        String invalidTestJson = createTestJson(invalidTestLogin);
         mockMvc.perform(post("/login").with(csrf())
                 .header("Origin", "https://lasers-cornubite-konnekt.herokuapp.com")
-                .contentType(MediaType.APPLICATION_JSON).content(validTestJson))
+                .contentType(MediaType.APPLICATION_JSON).content(invalidTestJson))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void testLogout() throws Exception {
-        TestLogin validTestLogin = new TestLogin("admin@admin.hu", "admin");
+        TestLogin validTestLogin = new TestLogin(testEmail, testPassword);
         String validTestJson = createTestJson(validTestLogin);
 
         mockMvc.perform(post("/login").with(csrf())

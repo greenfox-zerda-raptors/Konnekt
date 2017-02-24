@@ -112,6 +112,9 @@ public class UserService extends BaseService {
                 if (!passwordsMatch(request)) {
                     issues[1].add(Valid.issues.MISMATCH);
                 }
+                if (!passwordIsValid(request)) {
+                    issues[1].add(Valid.issues.INVALID_PASS);
+                }
                 break;
             case Valid.AUTH:
                 if (!passwordAndEmailMatch(request)) {
@@ -119,6 +122,10 @@ public class UserService extends BaseService {
                 }
                 break;
         }
+    }
+
+    private boolean passwordIsValid(AuthRequest request) {
+        return (request.getPassword().length() > 7);
     }
 
     private void validateEmail(AuthRequest request, int requirement, ArrayList<Valid.issues>[] issues) {
@@ -132,7 +139,7 @@ public class UserService extends BaseService {
                 break;
             case Valid.UNIQUE:
                 if (!emailIsValid(request.getEmail())) {
-                    issues[0].add(Valid.issues.INVALID);
+                    issues[0].add(Valid.issues.INVALID_EMAIL);
                 }
                 if (userExists(request.getEmail())) {
                     issues[0].add(Valid.issues.NOT_UNIQUE);
@@ -163,7 +170,7 @@ public class UserService extends BaseService {
         return userRepository.findOne(userId);
     }
 
-    String encryptPassword(String rawPassword) {
+    public String encryptPassword(String rawPassword) {
         return passwordEncoder.encode(rawPassword);
     }
 
