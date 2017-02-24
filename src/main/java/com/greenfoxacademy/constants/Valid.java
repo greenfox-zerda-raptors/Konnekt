@@ -14,7 +14,8 @@ public final class Valid {
 
     public enum issues {
         NOT_FOUND,
-        INVALID,
+        INVALID_EMAIL,
+        INVALID_PASS,
         NOT_UNIQUE,
         UNAUTHORIZED,
         MISMATCH,
